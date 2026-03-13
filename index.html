@@ -68,7 +68,7 @@ input,select,textarea{font-family:inherit;-webkit-appearance:none;outline:none;}
 
 .det-header{background:#1c1c1c;border-bottom:2px solid #e55a00;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;width:100%;box-sizing:border-box;}
 .backbtn{padding:8px 13px;background:#2a2a2a;color:#f0f0f0;border-radius:8px;font-size:14px;font-weight:700;}
-.det-name{flex:1;font-size:17px;font-weight:800;color:#e55a00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.det-name{flex:1;font-size:17px;font-weight:800;color:#e55a00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
 .editbtn{padding:8px 12px;background:#e55a00;color:#fff;border-radius:8px;font-size:13px;font-weight:700;}
 
 .detbody{padding:12px 12px 80px;}
@@ -1677,7 +1677,7 @@ function renderDetail(){
 // ── SAVE ──────────────────────────────────────
 function saveM(m){
   members[m.id] = m;
-  if(db) db.ref("members/"+m.id).set(m);
+  if(db) db.ref("members/"+m.id).set(m).catch(function(err){ console.error("Firebase save failed:", err); alert("Save failed: " + err.message); });
   renderList();
   if(curId===m.id) renderDetail();
 }
@@ -1700,7 +1700,7 @@ document.addEventListener("DOMContentLoaded", function(){
 function openMemberForm(m){
   var id = m ? m.id : null;
   var pho = PHASES.map(function(p){return'<option'+(m&&m.phase===p?' selected':'')+'>'+p+'</option>';}).join('');
-  var rot = m ? (m.rotation||[]).map(function(r){return typeof r==="object"?r:{day:r,phase:""};}) : [{day:"Legs",phase:"Phase 1"},{day:"Chest",phase:"Phase 1"},{day:"Back",phase:"Phase 1"},{day:"Shoulders",phase:"Phase 1"},{day:"Arms",phase:"Phase 1"}];
+  var rot = m ? (m.rotation||[]).map(function(r){return typeof r==="object"?{day:r.day||"",phase:r.phase||"",bar:r.bar||""}:{day:r,phase:"",bar:""};}) : [{day:"Legs",phase:"Phase 1"},{day:"Chest",phase:"Phase 1"},{day:"Back",phase:"Phase 1"},{day:"Shoulders",phase:"Phase 1"},{day:"Arms",phase:"Phase 1"}];
 
   openM(
     '<div class="mhandle"></div>'+
@@ -1741,7 +1741,7 @@ function openMemberForm(m){
         var name = ($("fn").value||"").trim();
         if(!name){ alert("Name is required."); return; }
         if(!rot.length){ alert("Add at least one workout day."); return; }
-        var rot2 = rot.map(function(r){return typeof r==="object"?r:{day:r,phase:"",bar:""};});
+        var rot2 = rot.map(function(r){return typeof r==="object"?{day:r.day||"",phase:r.phase||"",bar:r.bar||""}:{day:r,phase:"",bar:""};});
         var data = Object.assign({}, m||{}, {
           id: id||uid(), name:name,
           phone:($("fp").value||"").trim(),
