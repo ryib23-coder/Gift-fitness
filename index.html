@@ -1394,9 +1394,13 @@ function renderDetail(){
   }
 
   // Wire bar select dropdown — saves instantly to rotation
+  // Uses a getter so it always reads the current selDay (updated on day button tap)
   function wireBarSel(){
     var barSel = $("bar-sel"); if(!barSel) return;
-    barSel.addEventListener("change", function(){
+    // Remove any previous listener by cloning
+    var newSel = barSel.cloneNode(true);
+    barSel.parentNode.replaceChild(newSel, barSel);
+    newSel.addEventListener("change", function(){
       var mm = gm(); if(!mm) return;
       var val = this.value === "Auto" ? "" : this.value;
       var rot = mm.rotation||[];
@@ -2075,98 +2079,90 @@ var GUIDE_DATA = {
     phases: [
       { title: "Phase 1 — Transformer Only", exercises: [
         "Transformer Bar Squat (progressive overload)",
-        "Low Box Squat — start 10 lbs, go up by 10s",
-        "Little Box Step-Ups — 5×20 alternating with 10 lbs"
+        "Low Box Squat — start 10 lbs, increase by 10s",
+        "Little Box Step-Ups — 5×20 alternating"
       ]},
       { title: "Phase 2 — Transformer / Straight Bar", exercises: [
-        "Transformer / Straight Bar (Alternating)",
-        "Low Box Squat — increase by 10s",
+        "Transformer / Straight Bar (alternating — progressive overload)",
+        "Low Box Squat (increase by 10s)",
         "Little Box Step-Ups — 5×20 alternating"
       ]},
       { title: "Phase 3", exercises: [
-        "Transformer / Straight Bar (Alternating)",
+        "Transformer / Straight Bar (alternating — progressive overload)",
         "Sumo Squat (progressive overload)",
         "DB Goblet Split Squat (progressive overload)"
       ]},
       { title: "Phase 4", exercises: [
-        "Transformer / Straight Bar (Alternating)",
+        "Transformer / Straight Bar (alternating — progressive overload)",
         "Straight Bar Close-Stance Ballerina Squat",
         "Medium Box Step-Ups — 5×20 alternating"
       ]},
       { title: "Phase 5", exercises: [
-        "Transformer / Straight Bar (Alternating)",
+        "Transformer / Straight Bar (alternating — progressive overload)",
         "Sumo Squat OR SSB Close-Stance Squat",
         "Leg Extension — 3×20",
         "Hamstring Curl — 3×20"
       ]},
       { title: "Phase 6", exercises: [
-        "Transformer / Straight Bar (Alternating)",
+        "Transformer / Straight Bar (alternating — progressive overload)",
         "Sumo Squat OR SSB Close-Stance Squat",
         "DB Split Squat (Sumo or Ballerina) OR Medium Box Step-Up — 3×10",
         "Leg Extension — 3×20",
         "Hamstring Curl — 3×20"
       ]},
-      { title: "Phase 7", sections: [
-        { name: "Session A (alternating)", exercises: [
-          "Transformer Bar Squat",
-          "Sumo Squat",
-          "GIFT Reverse Lunges — 3×20 OR Leslie Step-Downs — 3×10 each leg",
-          "Leg Extension — 3×20 (VMO emphasis)",
-          "Hamstring Curl — 3×20 (Lean forward for stretch)"
-        ]},
-        { name: "Session B (alternating)", exercises: [
-          "Straight Bar Squat",
-          "SSB Transformer Squat",
-          "GIFT Reverse Lunges — 3×20 OR Leslie Step-Downs — 3×10 each leg",
-          "Leg Extension — 3×20 (VMO emphasis)",
-          "Hamstring Curl — 3×20 (Lean forward for stretch)"
-        ]}
+      { title: "Phase 7 (Advanced)", exercises: [
+        "Transformer / Straight Bar (alternating — progressive overload)",
+        "Ballerina SSB + Sumo Straight Bar (alternate movements)",
+        "GIFT Reverse Lunges — 3×20 OR Leslie Step-Downs — 3×10 each leg",
+        "Staggered Stance RDL — 10/15/20 lbs OR 10/20/30 lbs",
+        "Leg Extension — 3×20 (VMO emphasis)"
       ]}
     ]
   },
   "Chest": {
     color: "#ff7777",
     phases: [
-      { title: "Phase 1 — Day One", exercises: [
-        "Incline Dumbbell Bench — 3 sets (repeat 3 rounds)",
-        "If time → Flat Dumbbell Bench"
-      ]},
-      { title: "Phase 1 — Full Phase", note: "Females/Small Males: Start 10 lbs → up by 5 lbs. Once at 40 lbs → up by 10 lbs. Males: Start 20 lbs → up by 10 lbs.", exercises: [
-        "Incline Dumbbell Bench",
-        "Incline Dumbbell Bench (second exposure)",
-        "Flat Dumbbell Bench",
+      { title: "Phase 1", exercises: [
+        "Incline DB Bench",
+        "Incline DB Bench (second exposure)",
+        "Flat DB Bench",
         "Decline Fly — 5×20"
       ]},
       { title: "Phase 2", exercises: [
-        "Incline Dumbbell Bench",
-        "Incline Dumbbell Bench (second exposure)",
-        "Flat Dumbbell Bench",
-        "Volume Work — 5×20 (to push through plateau)"
+        "Incline DB Bench",
+        "Flat DB Bench",
+        "Volume Work — 5×20"
       ]},
-      { title: "Phase 3", note: "Barbell Rotation: Incline — 3 sessions → 2 sessions → 1 session. Flat — 3 sessions → 2 sessions → 1 session. Add decline flys or sit-ups on 2 or 1 session weeks.", exercises: [
-        "Incline Dumbbell Bench",
-        "Flat Dumbbell Bench",
-        "Barbell Bench (3rd movement: Incline or Flat)"
+      { title: "Phase 3", note: "Barbell rotation: Incline 3→2→1 sessions, Flat 3→2→1 sessions.", exercises: [
+        "Incline DB Bench",
+        "Flat DB Bench",
+        "Barbell Bench (Incline or Flat — rotating)",
+        "Decline Fly",
+        "Calisthenics"
       ]},
       { title: "Phase 4", exercises: [
         "Flat Barbell Bench",
         "Incline Barbell Bench",
-        "Incline Dumbbell Bench",
+        "Incline DB Bench",
         "Decline Fly — 5×20"
       ]},
       { title: "Phase 5", exercises: [
         "Incline Barbell Bench",
         "Flat Barbell Bench",
-        "Flat Dumbbell Press",
+        "Flat DB Press",
         "Decline Fly — 5×20"
       ]},
-      { title: "Phase 6", exercises: [
-        "Flat Barbell Bench",
-        "Incline Barbell Bench",
-        "Decline Cable Press",
-        "Hinged-Over Dips — 3 sets",
-        "Dragon Flags — 3 sets",
-        "Push-Ups — 3 sets (hollow-body floor → parallette → side-swiper)"
+      { title: "Phase 6 (Final)", sections: [
+        { name: "Main Lifts", exercises: [
+          "Flat Barbell Bench",
+          "Incline Barbell Bench",
+          "Decline Cable Press"
+        ]},
+        { name: "Calisthenics Finisher", exercises: [
+          "Dips — 3 sets (Hinged Dips → +10 Knee Raises → + Leg Raises)",
+          "Dragon Flags — 3 sets",
+          "Push-Ups — 3 sets (bench → hollow body → parallettes → pike push-up)"
+        ]}
       ]}
     ]
   },
@@ -2174,89 +2170,103 @@ var GUIDE_DATA = {
     color: "#6bb3ff",
     phases: [
       { title: "Phase 1", exercises: [
-        "Trap Bar Deadlift (Progressive Overload)"
+        "Trap Bar Deadlift (progressive overload)"
       ]},
       { title: "Phase 2", exercises: [
-        "Trap Bar Deadlift (Progressive Overload)",
-        "1-Arm Row (Progressive Overload)",
-        "Straight Bar Lat Pullover — 5×20 (Volume)"
+        "Trap Bar Deadlift (progressive overload)",
+        "1-Arm Row (progressive overload)",
+        "Straight Bar Lat Pullover — 5×20"
       ]},
-      { title: "Phase 3", note: "Must reach 275 lbs before progressing with 25-lb plates.", exercises: [
-        "Trap Bar Deadlift (Progressive Overload)",
-        "Hinge 1-Arm Row (Progressive Overload)",
-        "Neutral Grip Cable Row — 5×20 (Volume)"
+      { title: "Phase 3", note: "Must reach 275 lbs before progressing to 25-lb plates.", exercises: [
+        "Trap Bar Deadlift (progressive overload)",
+        "Hinge 1-Arm Row (progressive overload)",
+        "Neutral Grip Cable Row — 5×20"
       ]},
-      { title: "Phase 4", note: "On 2.0 Day add pulldown to session.", exercises: [
-        "Conventional Deadlift (Progressive Overload)",
-        "Barbell Bent-Over Row (Over/Under) — 3×20",
-        "Close Grip Neutral Lat Pulldown — Volume"
+      { title: "Phase 4", sections: [
+        { name: "Main Session", exercises: [
+          "Conventional Deadlift (progressive overload)",
+          "Barbell Bent-Over Row (over/under) — 3×20",
+          "Close Grip Neutral Lat Pulldown — volume"
+        ]},
+        { name: "2.0 Day", exercises: [
+          "Add Lat Pulldown",
+          "No back extensions"
+        ]}
       ]},
       { title: "Phase 5", exercises: [
-        "Conventional Deadlift / Trap Bar Alternating",
-        "T-Bar Row (Middle) — Progressive Overload",
-        "Wide Lat Pulldown — Volume"
+        "Conventional Deadlift / Trap Bar (alternating)",
+        "T-Bar Row (middle — progressive overload)",
+        "Wide Lat Pulldown — volume"
       ]},
       { title: "Phase 6", exercises: [
-        "Conventional Deadlift / Trap Bar Alternating",
+        "Conventional Deadlift / Trap Bar (alternating)",
         "Sumo Deadlift",
-        "T-Bar Row (Neutral, Low) — Progressive Overload",
-        "Overhand Pull-Up",
-        "Leg Raise (Side by Side)",
-        "Back Extensions or DB Hip Thrusts (25/35/45 lbs × 20)"
+        "T-Bar Row (neutral, low — progressive overload)",
+        "Overhand Pull-Ups",
+        "Leg Raises (side by side)",
+        "Back Extensions OR DB Hip Thrusts (25/35/45 lbs × 20)"
       ]},
-      { title: "Phase 7", exercises: [
-        "Conventional Deadlift or Trap Bar — Progressive Overload",
-        "Deficit Deadlift — Progressive Overload",
-        "Underhand Bent-Over Row — Progressive Overload",
-        "Overhand Pull-Ups (Hollow Body) — 3 sets",
-        "Overhand Pull-Ups (Wide, Legs Behind) — 3 sets",
-        "Hanging Knee Raises: 10 Up / 5 Left / 5 Right"
+      { title: "Phase 7 (Advanced)", exercises: [
+        "Conventional Deadlift OR Trap Bar (progressive overload)",
+        "Deficit Deadlift (progressive overload)",
+        "Underhand Bent-Over Row (progressive overload)",
+        "Overhand Pull-Ups (hollow body) — 3 sets",
+        "Overhand Pull-Ups (wide, legs behind) — 3 sets",
+        "Hanging Knee Raises: 10 up / 5 left / 5 right"
       ]}
     ]
   },
   "Shoulders": {
     color: "#c4b5fd",
     phases: [
-      { title: "Day One — Instructional", note: "Female: Standing DB Press 10→15→20 lbs, 3 sets each, Swiss Bar to 15 lbs then Straight Bar. Male: Standing Barbell OHP.", exercises: [
-        "Lateral Raise — 5×20"
+      { title: "Day One — Instructional", sections: [
+        { name: "Female", exercises: [
+          "Standing DB Press — 10 → 15 → 20 lbs (3 sets each)",
+          "Optional barbell same day — switch to straight bar after 15 lbs",
+          "Lateral Raise — 5×20"
+        ]},
+        { name: "Male", exercises: [
+          "Standing Barbell OHP",
+          "Lateral Raise — 5×20"
+        ]}
       ]},
       { title: "Phase 1", exercises: [
-        "Standing Barbell Overhead Press",
-        "Standing Dumbbell Press — 5×20",
+        "Standing Barbell Overhead Press (progressive overload)",
+        "Standing DB Press — 5×20",
         "Lateral Raise — 5×20",
         "Hinge Rear Delt Fly — 5×20"
       ]},
       { title: "Phase 2", exercises: [
-        "Overhead Press (any bar)",
+        "Overhead Press (any bar — progressive overload)",
         "Front Raise — 10 lbs — 5×10",
         "Lateral Raise — 5×20",
         "Hinge Rear Delt Fly — 5×20"
       ]},
       { title: "Phase 3", exercises: [
-        "Barbell Shoulder Press",
-        "Seated Dumbbell Press",
+        "Barbell Shoulder Press (progressive overload)",
+        "Seated DB Press (progressive overload)",
         "Lateral Raise — 10 lbs — 5×10",
         "Bent-Over Rear Delt Row"
       ]},
       { title: "Phase 4", exercises: [
-        "Barbell Overhead Press",
-        "Seated Barbell Overhead Press",
+        "Barbell Overhead Press (progressive overload)",
+        "Seated Barbell Overhead Press (progressive overload)",
         "One-Arm High ROM Lateral Raise — 5×20",
-        "Bent-Over Rear Delt Fly w/ Twist — 5×20"
+        "Rear Delt Fly w/ Twist — 5×20"
       ]},
       { title: "Phase 5", exercises: [
-        "Barbell Overhead Press",
-        "Seated Overhead Press",
-        "Rope Pull — 5×10",
+        "Barbell Overhead Press (progressive overload)",
+        "Seated Overhead Press (progressive overload)",
+        "Barbell Shrug — 3×20",
         "Arm-Bent Lateral Raise w/ Twist — 3×10",
         "Face Pull — 3×20"
       ]},
       { title: "Phase 6", exercises: [
-        "Barbell Overhead Press",
-        "Seated Arnold Press",
-        "Behind-the-Back Barbell Shrugs — 3×20",
+        "Barbell Overhead Press (progressive overload)",
+        "Seated Arnold Press (progressive overload)",
+        "Behind-the-Back Shrugs — 3×20",
         "Around-the-World Front Raise — 3×10",
-        "Pronated Lateral Delt Row — 3×10",
+        "Pronated Lateral Row — 3×10",
         "Yoga Twist Raise — 3×10",
         "Rear Delt High Row — 3×10",
         "Underhand Rear Delt Fly — 3×10"
@@ -2273,44 +2283,36 @@ var GUIDE_DATA = {
       { title: "Legs — Hanging Progression", sections: [
         { name: "All movements: 5 sets", exercises: [
           "1. Hanging Hold — neutral or supinated grip, legs behind or front. Goal: 30 sec",
-          "2. Hanging Knee Raises (Alternating) — Goal: 20 total reps (10 per side)",
-          "3. Chin-Up Attempts — if under 7 chin-ups, pair with hanging knee raises. Once 7 achieved, remove accessory leg raises",
-          "4. Pull-Ups (Overhand) — 3 sets legs behind, 3 sets legs in front, up to 10 reps. Once ballerina squats begin, add two pull-up variations on lower body days",
-          "5. Advanced — Hollow body pull-ups (legs front) 3 sets · Wide-grip (legs behind) 3 sets",
-          "6. Elite — Shifting pull-ups 10 reps (5 each side) · Front lever 3×30–60 sec holds"
+          "2. Hanging Knee Raises (alternating) — Goal: 20 total reps",
+          "3. Chin-Up Attempts — pair with hanging knee raises until 7 achieved",
+          "4. Pull-Ups (overhand) — legs behind 3 sets → legs front 3 sets, up to 10 reps",
+          "5. Advanced — Hollow body pull-ups (legs front) · Wide-grip (legs behind)",
+          "6. Elite — Shifting pull-ups · Angled pull-ups (neutral) · Pull-up holds 30–60 sec"
         ]}
       ]},
       { title: "Chest — Core to Pressing", sections: [
         { name: "Progression", exercises: [
-          "1. Decline Sit-Ups — from top position, then bottom position · 5 sets at highest level",
-          "2. Upon sit-up mastery → progress to dragon flags",
-          "3. Once flat barbell bench introduced: 3 sets push-ups + 3 sets core work · Push-up order: Bench → Floor → Hollow body → Hollow body on parallettes",
-          "4. Advanced: 3 sets dips · 3 sets dragon flags or highest sit-ups · 3 sets slider push-ups"
+          "1. Sit-Up Progression — core 5 sets → dragon flags",
+          "2. Push-Ups + Core — 3 sets each",
+          "3. Bench → Floor → Hollow body → Parallettes",
+          "4. Advanced: Dips 3 sets · Core 3 sets · Pike Push-Ups 3 sets"
         ]}
       ]},
       { title: "Back — Posterior Chain", sections: [
         { name: "Progression", exercises: [
-          "1. Back extensions up to 10 reps · Hip thrusts up to 20 reps (20→30→40 lbs)",
-          "2. Once T-bar row introduced: 3 sets leg raises (bent or straight) · 3 sets back extensions or hip thrusts",
-          "3. Pull-Up + Core: 3 sets pull-ups (up to 10) · 3 sets leg raises · 3 sets back extensions or hip thrusts",
-          "4. Advanced: Close, wide, legs-behind pull-ups · Leg raise sequence: 5 each side + 10 front · 3 sets back extensions or hip thrusts"
+          "1. Back Extensions — up to 10 reps",
+          "2. Core + Posterior Pairing: Leg Raises 3 sets · Back Extensions 3 sets",
+          "3. (See Back Day for full calisthenics integration)"
         ]}
       ]},
       { title: "Shoulders — Pressing & Stability", sections: [
         { name: "Progression", exercises: [
-          "1. Mountain Climbers — bench 5 sets, then floor 5×20 (10 each side)",
-          "2. Push-Ups — bench → floor → parallettes up to 5 sets",
-          "3. Once seated barbell press introduced: 3 sets dips · 3 sets push-ups · 3 sets planks (60 sec)",
-          "4. Slider planks — 3 sets",
-          "5. Ab wheel — introduced after slider plank competency",
-          "6. Advanced: Dips → sternum dips · Parallette push-ups → slider push-ups"
-        ]}
-      ]},
-      { title: "Arms — Core Focus", sections: [
-        { name: "Progression", exercises: [
-          "1. Sit-Ups — sets of 10",
-          "2. Dragon Flags — sets of 10",
-          "3. Bruce Lee Sit-Ups — sets of 10 (highest-level sit-up progression)"
+          "1. Mountain Climbers — bench 5 sets → floor 5×20",
+          "2. Push-Up progression",
+          "3. Dips + Push-Ups + Planks (60 sec)",
+          "4. Slider planks",
+          "5. Ab wheel (after slider plank competency)",
+          "6. Advanced: Dips → Sternum Dips · Parallettes → Pike Push-Ups"
         ]}
       ]}
     ]
@@ -2320,23 +2322,23 @@ var GUIDE_DATA = {
     phases: [
       { title: "Phase 1", sections: [
         { name: "Biceps", exercises: [
-          "Side Curl (Progressive Overload) — one arm at a time, up to 30 lbs",
+          "Side Curl (progressive overload) — one arm at a time, up to 30 lbs",
           "Standing Hinged Preacher Curl — Inside Grip — 3×20",
           "Standing Hinged Preacher Curl — Outside Grip — 3×20"
         ]},
         { name: "Triceps", exercises: [
-          "Dumbbell Tricep Kickbacks — Progressive Overload",
+          "Dumbbell Tricep Kickbacks (progressive overload)",
           "Long Rope Tricep Extension — 5×20"
         ]}
       ]},
       { title: "Phase 2", sections: [
         { name: "Biceps", exercises: [
-          "Twist Curl (Progressive Overload) — up to ~30 lbs",
+          "Twist Curl (progressive overload) — up to ~30 lbs",
           "Standing Hinged Upright Curl — Inside Grip — 3×20 (Multi-Grip Bar)",
           "Standing Hinged Upright Curl — Outside Grip — 3×20 (Multi-Grip Bar)"
         ]},
         { name: "Triceps", exercises: [
-          "Overhead Dumbbell Tricep Extension — Progressive Overload",
+          "Overhead Dumbbell Tricep Extension (progressive overload)",
           "Dumbbell EZ-Bar Inside Tricep Extensions — 5×20"
         ]}
       ]},
@@ -2348,7 +2350,7 @@ var GUIDE_DATA = {
           "Hammer Curl — 3×20 (10–20 lbs)"
         ]},
         { name: "Triceps", exercises: [
-          "Overhead Dumbbell Tricep Extension — Progressive Overload",
+          "Overhead Dumbbell Tricep Extension (progressive overload)",
           "Cable Straight-Bar Tricep Extension — 3×20",
           "Single-Arm Lateral Tricep Extension — 3×20"
         ]}
@@ -2361,9 +2363,9 @@ var GUIDE_DATA = {
           "Dumbbell Supinated Curl — Standing — 3×20"
         ]},
         { name: "Triceps — Cable Series", exercises: [
-          "Tricep Pushdown — Progressive Overload (Female: start 15 lbs +5, Male: start 25 lbs +10)",
+          "Tricep Pushdown (progressive overload) — Female: start 15 lbs +5, Male: start 25 lbs +10",
           "Reverse Grip Pushdown — 3×20",
-          "Rope Tricep Extension — 3×20 (Supinate top, pronate bottom)"
+          "Rope Tricep Extension — 3×20 (supinate top, pronate bottom)"
         ]}
       ]},
       { title: "Phase 5", sections: [
@@ -2372,7 +2374,7 @@ var GUIDE_DATA = {
           "Behind-the-Back Cable Curl — 5×20 (Males up to 40 lbs by 10s, Females by 5s)"
         ]},
         { name: "Triceps", exercises: [
-          "Rope Overhead Tricep Extension — Progressive Overload",
+          "Rope Overhead Tricep Extension (progressive overload)",
           "Single-Arm Reverse Extension — 3×20",
           "Cross-to-Shoulder Single-Arm Cable Extension — 3×20"
         ]}
@@ -2380,6 +2382,7 @@ var GUIDE_DATA = {
     ]
   }
 };
+
 
 var guideDay = "Legs";
 
