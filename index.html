@@ -317,6 +317,8 @@ function today(){
   return adjusted.toISOString().slice(0,10);
 }
 function fmtD(d){if(!d)return"";try{return new Date(d+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});}catch(e){return d;}}
+function fmtT(ts){if(!ts)return"";try{return new Date(ts).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true});}catch(e){return"";}}
+
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function $(id){return document.getElementById(id);}
 function gm(){return members[curId];}
@@ -730,7 +732,7 @@ function renderList(){
         }())+
         (isMilestone?'<div style="font-size:11px;color:#ffd700;font-weight:800;margin-bottom:2px;">⭐ '+checkinCount+' Check-Ins — Celebrate!</div>':'')+
         (isWelcomeBack?'<div style="font-size:11px;color:#5ce8a8;font-weight:800;margin-bottom:2px;">👋 Welcome back after '+daysMia+' days!</div>':'')+
-        (function(){ if(!ts.checkedInToday) return ''; var bday=m.birthday; var isBday=false; if(bday){var t2=new Date();var mm2=String(t2.getMonth()+1).padStart(2,'0');var dd2=String(t2.getDate()).padStart(2,'0');isBday=bday.substring(5)===(mm2+'-'+dd2);} return '<div style="font-size:11px;color:#e55a00;font-weight:700;margin-bottom:2px;">✓ Checked in: '+esc(ts.day)+(isBday?' &nbsp;<span style="color:#ffc107;">🎂 Birthday!</span>':'')+'</div>'; }())+
+        (function(){ if(!ts.checkedInToday) return ''; var bday=m.birthday; var isBday=false; if(bday){var t2=new Date();var mm2=String(t2.getMonth()+1).padStart(2,'0');var dd2=String(t2.getDate()).padStart(2,'0');isBday=bday.substring(5)===(mm2+'-'+dd2);} var todayCIs=(m.checkins||[]).filter(function(c){return c.date===today();}); var ciTs=todayCIs.length?todayCIs[todayCIs.length-1].timestamp:null; return '<div style="font-size:11px;color:#e55a00;font-weight:700;margin-bottom:2px;">✓ Checked in: '+esc(ts.day)+(ciTs?' &nbsp;<span style="color:rgba(229,90,0,0.7);font-weight:600;">'+fmtT(ciTs)+'</span>':'')+(isBday?' &nbsp;<span style="color:#ffc107;">🎂 Birthday!</span>':'')+'</div>'; }())+
         (isMia?'<div style="font-size:11px;color:#ff5555;font-weight:700;margin-bottom:2px;">⚠ Last seen '+daysMia+' days ago</div>':'')+
       '<div class="mcs">'+(ts.checkedInToday?'Up next: ':'Next: ')+'<b style="color:'+nd.col+'">'+esc(nd.day)+'</b>'+(nd.phase?' &nbsp;<span style="color:#ffc107;font-size:11px">'+esc(nd.phase)+'</span>':'')+'</div>'+
         (act.length?'<div class="mcw">&#9888; '+act.length+' active modification</div>':'')+
@@ -1168,14 +1170,15 @@ function renderDetail(){
     var modHTML = mods.length ? '<div style="margin-top:3px;">'+mods.map(function(i){
       return '<span style="display:inline-block;font-size:10px;font-weight:700;color:#e55a00;background:rgba(229,90,0,0.12);border-radius:6px;padding:1px 6px;margin-right:3px;">✎ Mod '+fmtD(i.date)+'</span>';
     }).join('')+'</div>' : '';
+    var barEditable = showFix && (c.day==="Legs"||c.day==="Back"||c.day==="Chest"||c.day==="Shoulders");
     return '<div class="hist-item" style="align-items:center;">'+
       '<div>'+
         '<div style="font-weight:700;font-size:15px;">'+esc(c.day)+'</div>'+
-        (c.bar?'<div style="font-size:13px;font-weight:800;color:#ffc107;margin-top:2px;">'+esc(c.bar)+'</div>':'')+
+        (c.bar?'<div data-a="'+(barEditable?"fix-bar":"")+'" data-id="'+esc(c.id)+'" style="font-size:13px;font-weight:800;color:#ffc107;margin-top:2px;'+(barEditable?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;':'')+'" title="'+(barEditable?"Tap to edit bar":"")+'">'+esc(c.bar)+'</div>':'')+
         modHTML+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:6px;">'+
-        '<div style="text-align:right"><div style="color:#555;font-size:11px">'+fmtD(c.date)+'</div><div style="color:#e55a00;font-size:11px">'+esc(c.trainer||"")+'</div></div>'+
+        '<div style="text-align:right"><div style="color:#555;font-size:11px">'+fmtD(c.date)+'</div>'+(c.timestamp?'<div style="color:#666;font-size:11px">'+fmtT(c.timestamp)+'</div>':'')+' <div style="color:#e55a00;font-size:11px">'+esc(c.trainer||"")+'</div></div>'+
         (showFix?'<button data-a="fix-checkin" data-id="'+esc(c.id)+'" style="background:rgba(229,90,0,0.12);border:1.5px solid #e55a00;border-radius:10px;color:#e55a00;font-size:16px;padding:12px 20px;cursor:pointer;font-family:inherit;font-weight:700;min-width:64px;min-height:52px;" title="Change day">✎ Fix</button>':'')+
       '</div>'+
     '</div>';
@@ -1237,7 +1240,16 @@ function renderDetail(){
       injWarn+
       '<div class="ci-box">'+
         (function(){ if(!m.birthday) return ''; var t2=new Date(); var mm2=String(t2.getMonth()+1).padStart(2,'0'); var dd2=String(t2.getDate()).padStart(2,'0'); var isToday=m.birthday.substring(5)===(mm2+'-'+dd2); return isToday?'<div style="font-size:13px;font-weight:800;color:#ffc107;background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 12px;margin-bottom:10px;text-align:center;">🎂 Happy Birthday!</div>':''; }())+
-        '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:4px;margin-bottom:10px;padding:4px 10px;display:inline-block;border-radius:6px;background:rgba(0,0,0,0.2);color:'+(nd.recentLock?'#fff':'#fff')+'">'+(nd.recentLock?'&#10003; Checked In Today':'&#9654; Today&#39;s Session')+'</div>'+
+        (function(){
+          var label = nd.recentLock ? '&#10003; Checked In Today' : '&#9654; Today&#39;s Session';
+          var timeStr = '';
+          if(nd.recentLock){
+            var todayCIs = (m.checkins||[]).filter(function(c){return c.date===today();});
+            var ts = todayCIs.length ? todayCIs[todayCIs.length-1].timestamp : null;
+            if(ts) timeStr = '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.75);margin-top:4px;letter-spacing:1px;">&#128336; Started '+fmtT(ts)+'</div>';
+          }
+          return '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:4px;margin-bottom:'+(timeStr?'4':'10')+'px;padding:4px 10px;display:inline-block;border-radius:6px;background:rgba(0,0,0,0.2);">'+label+'</div>'+timeStr+(timeStr?'<div style="margin-bottom:6px;"></div>':'');
+        }())+
         '<div class="ci-day" style="color:'+(DAY_COL[sel]||nd.col)+';text-shadow:0 0 30px '+(DAY_COL[sel]||nd.col)+'55;" id="ci-day">'+esc(sel)+'</div>'+
         (nd.phase?'<div style="font-size:14px;font-weight:700;color:#fff3b0;margin-top:3px;cursor:pointer;text-decoration:underline dotted;" id="ci-phase" data-qpday="'+esc(sel)+'" data-qpphase="'+esc(nd.phase)+'">'+esc(nd.phase)+' &#9432;</div>':'<div id="ci-phase"></div>')+
         (function(){
@@ -1401,6 +1413,11 @@ function renderDetail(){
     mm.checkins = checkins;
     // clear manual day override now that it has been used
     if(mm.nextDayOverride !== undefined) delete mm.nextDayOverride;
+    // clear one-time bar override for Legs/Back so auto-rotation resumes next session
+    if((dayToUse==="Legs" || dayToUse==="Back") && ri>=0 && typeof rot[ri]==="object"){
+      rot[ri] = {day:rDay(rot[ri]), phase:rPhase(rot[ri]), bar:""};
+      mm.rotation = rot;
+    }
     // toggle Phase 7 Legs session A/B
     if(dayToUse==="Legs" && ph==="Phase 7"){
       mm.p7legsSession = ((mm.p7legsSession||0) + 1) % 2;
@@ -1781,6 +1798,40 @@ function renderDetail(){
         }
       );
     }
+    else if(a==="fix-bar"){
+      var mm = gm(); if(!mm) return;
+      var ci = (mm.checkins||[]).find(function(c){ return c.id===id; }); if(!ci) return;
+      var barOpts;
+      if(ci.day==="Legs") barOpts = ["Transformer Bar","Straight Bar"];
+      else if(ci.day==="Back") barOpts = ["Trap Bar","Straight Bar"];
+      else barOpts = ["Straight Bar","Valor Bar"];
+      var curBar = ci.bar||"";
+      var optHTML = barOpts.map(function(b){
+        return '<button class="ov-btn'+(curBar===b?' sel':'')+'" style="margin-bottom:6px;font-size:13px;padding:10px 18px;" data-barval="'+esc(b)+'">'+esc(b)+'</button>';
+      }).join("");
+      openM(
+        '<div class="mhandle"></div>'+
+        '<div style="font-weight:800;font-size:16px;margin-bottom:4px;">Edit Bar</div>'+
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">'+esc(ci.day)+' on '+fmtD(ci.date)+(curBar?' &nbsp;&mdash;&nbsp; <b style="color:#ffc107">'+esc(curBar)+'</b>':'')+'</div>'+
+        '<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Change to:</div>'+
+        '<div class="ov-row" style="flex-wrap:wrap;gap:8px;margin-bottom:20px;">'+optHTML+'</div>'+
+        '<button id="fixbar-cancel-btn" style="width:100%;padding:12px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Cancel</button>',
+        function(){
+          document.getElementById("fixbar-cancel-btn").addEventListener("click", function(){ closeM(); });
+          document.querySelector("#modal .ov-row").addEventListener("click", function(e){
+            var btn = e.target.closest("[data-barval]"); if(!btn) return;
+            var newBar = btn.getAttribute("data-barval");
+            var mm2 = gm(); if(!mm2) return;
+            mm2.checkins = (mm2.checkins||[]).map(function(c){
+              if(c.id!==id) return c;
+              return Object.assign({},c,{bar:newBar});
+            });
+            saveM(mm2);
+            closeM();
+          });
+        }
+      );
+    }
 
   });
 }
@@ -1828,6 +1879,9 @@ function openMemberForm(m){
     '<div class="fg"><label>Workout Rotation (in order)</label><div class="daylist" id="dlist"></div><button class="adddaybtn" id="addday">+ Add Day</button></div>'+
     '<div class="fbtns"><button class="fcancel" id="mfc">Cancel</button><button class="fsave" id="mfs">Save</button></div>',
     function(){
+      function sortRot(){
+        rot.sort(function(a,b){ return DAYS.indexOf(rDay(a)) - DAYS.indexOf(rDay(b)); });
+      }
       function renderDays(){
         var dl = $("dlist"); dl.innerHTML = "";
         rot.forEach(function(entry, i){
@@ -1838,6 +1892,7 @@ function openMemberForm(m){
           row.innerHTML = '<span class="daynum">'+(i+1)+'</span><select class="dsel">'+dayOpts+'</select><select class="psel" style="border-color:#e55a00;color:#ffc107;">'+phOpts+'</select><button class="dayrem">&#215;</button>';
           row.querySelector(".dsel").addEventListener("change", function(){
             rot[i]={day:this.value, phase:rPhase(rot[i]), bar:typeof rot[i]==="object"?rot[i].bar:""};
+            sortRot();
             renderDays();
           });
           row.querySelector(".psel").addEventListener("change", function(){ rot[i]={day:rDay(rot[i]),phase:this.value,bar:typeof rot[i]==="object"?rot[i].bar:""}; });
@@ -1846,7 +1901,13 @@ function openMemberForm(m){
         });
       }
       renderDays();
-      $("addday").addEventListener("click", function(){ rot.push({day:"Legs",phase:"Phase 1"}); renderDays(); });
+      $("addday").addEventListener("click", function(){
+        var taken = rot.map(function(r){return rDay(r);});
+        var nextDay = DAYS.find(function(d){return taken.indexOf(d)===-1;}) || "Legs";
+        rot.push({day:nextDay, phase:"Phase 1"});
+        sortRot();
+        renderDays();
+      });
       $("mfc").addEventListener("click", closeM);
       $("mfs").addEventListener("click", function(){
         var name = ($("fn").value||"").trim();
