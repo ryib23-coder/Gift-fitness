@@ -497,16 +497,14 @@ function getNextBar(m, day, phase){
   // Chest Phase 4+ / Shoulders Phase 1+: manual Straight Bar or Valor Bar (default Straight Bar)
   if(day==="Chest" && phaseNum(phase)>=4) return manualBar || "Straight Bar";
   if(day==="Shoulders" && phaseNum(phase)>=1) return manualBar || "Straight Bar";
-  // Auto-alternate based on check-in count; default bar before phase threshold
+  // Auto-alternate based on last bar used — stays in sync even after manual overrides
   if(day==="Legs"){
-    var cnt=(m.checkins||[]).filter(function(c){return c.day==="Legs";}).length;
     if(phaseNum(phase)<2) return "Straight Bar";
-    return cnt%2===0?"Transformer Bar":"Straight Bar";
+    return (m.lastLegsBar||"") === "Transformer Bar" ? "Straight Bar" : "Transformer Bar";
   }
   if(day==="Back"){
-    var cnt=(m.checkins||[]).filter(function(c){return c.day==="Back";}).length;
     if(phaseNum(phase)<5) return "Straight Bar";
-    return cnt%2===0?"Trap Bar":"Straight Bar";
+    return (m.lastBackBar||"") === "Trap Bar" ? "Straight Bar" : "Trap Bar";
   }
   return null;
 }
@@ -1174,7 +1172,7 @@ function renderDetail(){
     return '<div class="hist-item" style="align-items:center;">'+
       '<div>'+
         '<div style="font-weight:700;font-size:15px;">'+esc(c.day)+'</div>'+
-        (c.bar?'<div data-a="'+(barEditable?"fix-bar":"")+'" data-id="'+esc(c.id)+'" style="font-size:13px;font-weight:800;color:#ffc107;margin-top:2px;'+(barEditable?'cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;':'')+'" title="'+(barEditable?"Tap to edit bar":"")+'">'+esc(c.bar)+'</div>':'')+
+        (c.bar?'<div data-a="'+(barEditable?"fix-bar":"")+'" data-id="'+esc(c.id)+'" style="font-size:13px;font-weight:800;color:#ffc107;margin-top:2px;'+(barEditable?'cursor:pointer;':'')+'">'+esc(c.bar)+(barEditable?' <span style="font-size:11px;opacity:0.55;font-weight:400;">✎</span>':'')+'</div>':'')+
         modHTML+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:6px;">'+
@@ -1272,27 +1270,21 @@ function renderDetail(){
           if(!isLegs && !isBack) return '<div class="ci-bar" id="ci-bar"></div>';
           if(isLegs && curPhaseNum<2) return '<div class="ci-bar" id="ci-bar"></div>';
           if(isBack && curPhaseNum<5) return '<div class="ci-bar" id="ci-bar"></div>';
-          var curBarVal = rotEntry && rotEntry.bar ? rotEntry.bar : "Auto";
           var autoBar = (function(){
             if(isLegs){
-              var cnt=(m.checkins||[]).filter(function(c){return c.day==="Legs";}).length;
               if(curPhaseNum<2) return "Straight Bar";
-              return cnt%2===0?"Transformer Bar":"Straight Bar";
+              return (m.lastLegsBar||"")==="Transformer Bar" ? "Straight Bar" : "Transformer Bar";
             }
             if(isBack){
-              var cnt=(m.checkins||[]).filter(function(c){return c.day==="Back";}).length;
               if(curPhaseNum<5) return "Straight Bar";
-              return cnt%2===0?"Trap Bar":"Straight Bar";
+              return (m.lastBackBar||"")==="Trap Bar" ? "Straight Bar" : "Trap Bar";
             }
             return null;
           }());
-          var autoLabel = autoBar ? "Auto ("+autoBar+")" : "Auto";
-          var manualOpts = isLegs ? ['Transformer Bar','Straight Bar'] : ['Trap Bar','Straight Bar'];
-          var allOpts = ['Auto'].concat(manualOpts);
-          var optHTML = allOpts.map(function(o){
-            var label = o==="Auto" ? autoLabel : o;
-            var selected = curBarVal===o ? ' selected' : '';
-            return '<option value="'+o+'"'+selected+'>'+label+'</option>';
+          var curBarVal = (rotEntry && rotEntry.bar) ? rotEntry.bar : autoBar;
+          var opts = isLegs ? ['Transformer Bar','Straight Bar'] : ['Trap Bar','Straight Bar'];
+          var optHTML = opts.map(function(o){
+            return '<option value="'+o+'"'+(curBarVal===o?' selected':'')+'>'+o+'</option>';
           }).join('');
           return '<div class="ci-bar" id="ci-bar" style="display:flex;align-items:center;gap:8px;margin-top:6px;">'+
             '<span style="color:#fff3b0;font-weight:800;font-size:13px;white-space:nowrap;">🏋️ Bar:</span>'+
@@ -1413,11 +1405,13 @@ function renderDetail(){
     mm.checkins = checkins;
     // clear manual day override now that it has been used
     if(mm.nextDayOverride !== undefined) delete mm.nextDayOverride;
-    // clear one-time bar override for Legs/Back so auto-rotation resumes next session
+    // clear one-time bar override and track last bar used so rotation stays in sync
     if((dayToUse==="Legs" || dayToUse==="Back") && ri>=0 && typeof rot[ri]==="object"){
       rot[ri] = {day:rDay(rot[ri]), phase:rPhase(rot[ri]), bar:""};
       mm.rotation = rot;
     }
+    if(dayToUse==="Legs") mm.lastLegsBar = barUsed||"";
+    if(dayToUse==="Back") mm.lastBackBar = barUsed||"";
     // toggle Phase 7 Legs session A/B
     if(dayToUse==="Legs" && ph==="Phase 7"){
       mm.p7legsSession = ((mm.p7legsSession||0) + 1) % 2;
@@ -1434,7 +1428,7 @@ function renderDetail(){
     barSel.parentNode.replaceChild(newSel, barSel);
     newSel.addEventListener("change", function(){
       var mm = gm(); if(!mm) return;
-      var val = this.value === "Auto" ? "" : this.value;
+      var val = this.value;
       var rot = mm.rotation||[];
       var ri = rot.findIndex(function(r){return rDay(r)===selDay;});
       if(ri>=0){
@@ -1484,22 +1478,19 @@ function renderDetail(){
         if(isLegs2 && ph2Num<2){ ciBar.innerHTML=""; ciBar.style.display=""; }
         else if(isBack2 && ph2Num<5){ ciBar.innerHTML=""; ciBar.style.display=""; }
         else {
-          var curBarVal2 = rotEntry2 && rotEntry2.bar ? rotEntry2.bar : "Auto";
           var opts2 = isLegs2 ? ['Transformer Bar','Straight Bar'] : ['Trap Bar','Straight Bar'];
           var autoBar2 = (function(){
+            var mm2=gm();
             if(isLegs2){
-              var cnt2=(gm().checkins||[]).filter(function(c){return c.day==="Legs";}).length;
               if(ph2Num<2) return "Straight Bar";
-              return cnt2%2===0?"Transformer Bar":"Straight Bar";
+              return ((mm2&&mm2.lastLegsBar)||"")==="Transformer Bar" ? "Straight Bar" : "Transformer Bar";
             }
-            var cnt2=(gm().checkins||[]).filter(function(c){return c.day==="Back";}).length;
             if(ph2Num<5) return "Straight Bar";
-            return cnt2%2===0?"Trap Bar":"Straight Bar";
+            return ((mm2&&mm2.lastBackBar)||"")==="Trap Bar" ? "Straight Bar" : "Trap Bar";
           }());
-          var autoLabel2 = autoBar2 ? "Auto ("+autoBar2+")" : "Auto";
-          var optHTML2 = ['Auto'].concat(opts2).map(function(o){
-            var label = o==="Auto" ? autoLabel2 : o;
-            return '<option value="'+o+'"'+(curBarVal2===o?' selected':'')+'>'+label+'</option>';
+          var curBarVal2 = (rotEntry2 && rotEntry2.bar) ? rotEntry2.bar : autoBar2;
+          var optHTML2 = opts2.map(function(o){
+            return '<option value="'+o+'"'+(curBarVal2===o?' selected':'')+'>'+o+'</option>';
           }).join('');
           ciBar.innerHTML = '<span style="color:#fff3b0;font-weight:800;font-size:13px;white-space:nowrap;">🏋️ Bar:</span>'+
             '<select id="bar-sel" style="flex:1;background:rgba(0,0,0,0.25);border:1.5px solid rgba(255,243,176,0.4);border-radius:8px;color:#fff3b0;font-size:13px;font-weight:700;padding:5px 8px;font-family:inherit;">'+optHTML2+'</select>';
