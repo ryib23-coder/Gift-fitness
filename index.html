@@ -1285,7 +1285,13 @@ function renderDetail(){
             }
             return null;
           }());
-          var curBarVal = (rotEntry && rotEntry.bar) ? rotEntry.bar : autoBar;
+          // if already checked in today on this day, show the bar that was actually used
+          var todayUsedBar = (function(){
+            if(!nd.recentLock) return null;
+            var tc = (m.checkins||[]).filter(function(c){return c.date===today()&&c.day===sel;});
+            return tc.length ? tc[tc.length-1].bar||null : null;
+          }());
+          var curBarVal = todayUsedBar || (rotEntry && rotEntry.bar ? rotEntry.bar : autoBar);
           var opts = isLegs ? ['Transformer Bar','Straight Bar'] : ['Trap Bar','Straight Bar'];
           var optHTML = opts.map(function(o){
             return '<option value="'+o+'"'+(curBarVal===o?' selected':'')+'>'+o+'</option>';
@@ -1500,7 +1506,12 @@ function renderDetail(){
             if(ph2Num<5) return "Straight Bar";
             return ((mm2&&mm2.lastBackBar)||"")==="Trap Bar" ? "Straight Bar" : "Trap Bar";
           }());
-          var curBarVal2 = (rotEntry2 && rotEntry2.bar) ? rotEntry2.bar : autoBar2;
+          var todayUsedBar2 = (function(){
+            var mm2=gm(); if(!mm2||!nd.recentLock) return null;
+            var tc=(mm2.checkins||[]).filter(function(c){return c.date===today()&&c.day===dayClicked;});
+            return tc.length ? tc[tc.length-1].bar||null : null;
+          }());
+          var curBarVal2 = todayUsedBar2 || (rotEntry2 && rotEntry2.bar ? rotEntry2.bar : autoBar2);
           var optHTML2 = opts2.map(function(o){
             return '<option value="'+o+'"'+(curBarVal2===o?' selected':'')+'>'+o+'</option>';
           }).join('');
