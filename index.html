@@ -627,9 +627,13 @@ function renderTracker(){
       '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#ff5555;margin-bottom:8px;">⚠ MIA — 30+ Days</div>'+
       mia.map(function(m){
         var days = daysSinceLastCheckin(m);
-        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#1a0808;border:1.5px solid #ff555533;border-left:3px solid #ff5555;border-radius:8px;margin-bottom:5px;cursor:pointer;" data-mia-id="'+esc(m.id)+'">'+
-          '<div style="font-size:13px;font-weight:700;color:#ffaaaa;">'+esc(m.name)+'</div>'+
-          '<div style="font-size:12px;font-weight:800;color:#ff5555;">'+days+' days ago</div>'+
+        var contacted = m.miaContacted;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#1a0808;border:1.5px solid '+(contacted?'#5ce8a844':'#ff555533')+';border-left:3px solid '+(contacted?'#5ce8a8':'#ff5555')+';border-radius:8px;margin-bottom:5px;cursor:pointer;" data-mia-id="'+esc(m.id)+'">'+
+          '<div>'+
+            '<div style="font-size:13px;font-weight:700;color:'+(contacted?'#aaa':'#ffaaaa')+';">'+esc(m.name)+'</div>'+
+            (contacted?'<div style="font-size:10px;color:#5ce8a8;font-weight:700;">✓ Contacted '+fmtD(contacted.date)+'</div>':'')+
+          '</div>'+
+          '<div style="font-size:12px;font-weight:800;color:'+(contacted?'#555':'#ff5555')+';">'+days+' days ago</div>'+
         '</div>';
       }).join('')+
     '</div>';
@@ -1299,6 +1303,7 @@ function renderDetail(){
         DAYS.map(function(d){var btnSel=nd.recentLock?(d===ndNext.day):(d===sel);return '<button class="ov-btn'+(btnSel?' sel':'')+'" data-day="'+d+'">'+d+'</button>';}).join("")+
       '</div>'+
       '<button class="ci-btn" id="ci-btn"'+(nd.recentLock?' style="background:#2a2a2a;color:#e55a00;border:1.5px solid #e55a00;" disabled':'')+'>'+( nd.recentLock ? '&#10003; Checked In Today' : '&#10003; Check In Now')+'</button>'+
+      (!nd.recentLock ? '<textarea id="ci-note-inp" placeholder="Quick session note... (optional)" rows="2" style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid #2a2a2a;border-radius:10px;color:#ccc;font-size:13px;padding:10px 12px;margin-top:8px;font-family:inherit;resize:none;box-sizing:border-box;display:block;"></textarea>' : '')+
       '<button style="width:100%;padding:14px;background:'+(m.isPhoenix?'rgba(255,85,85,0.15)':'none')+';border:1.5px solid '+(m.isPhoenix?'#ff5555':'#333')+';border-radius:10px;color:'+(m.isPhoenix?'#ff5555':'#888')+';font-size:15px;font-weight:800;margin-top:8px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;" id="phoenix-btn">'+
         '<input type="checkbox" id="phoenix-toggle" '+(m.isPhoenix?'checked':'')+' style="width:22px;height:22px;accent-color:#ff5555;cursor:pointer;flex-shrink:0;">'+
         '<span>🔥 Phoenix Member</span>'+
@@ -1319,7 +1324,23 @@ function renderDetail(){
       if(isMilestone) alerts.push('<div style="background:rgba(255,215,0,0.1);border:1.5px solid rgba(255,215,0,0.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⭐</span><div><div style="font-weight:800;font-size:13px;color:#ffd700;">'+checkinCount+' Check-In Milestone!</div><div style="font-size:11px;color:#888;margin-top:1px;">Celebrate this achievement with them</div></div></div>');
       if(isAnnivD) alerts.push('<div style="background:rgba(196,181,253,0.1);border:1.5px solid rgba(196,181,253,0.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🎉</span><div><div style="font-weight:800;font-size:13px;color:#c4b5fd;">'+(annexDaysD===0?joinYearsD+'-Year Gym Anniversary Today!':'Gym Anniversary in '+annexDaysD+' day'+(annexDaysD===1?'':'s'))+'</div><div style="font-size:11px;color:#888;margin-top:1px;">'+joinYearsD+' year'+(joinYearsD===1?'':'s')+' strong — acknowledge it!</div></div></div>');
       if(isWelcomeBackD) alerts.push('<div style="background:rgba(92,232,168,0.1);border:1.5px solid rgba(92,232,168,0.35);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">👋</span><div><div style="font-weight:800;font-size:13px;color:#5ce8a8;">Welcome Back!</div><div style="font-size:11px;color:#888;margin-top:1px;">Haven\'t seen them in '+daysMiaD+' days — great to have them back</div></div></div>');
-      if(isMiaD) alerts.push('<div style="background:rgba(255,85,85,0.08);border:1.5px solid rgba(255,85,85,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⚠️</span><div><div style="font-weight:800;font-size:13px;color:#ff5555;">Missing in Action</div><div style="font-size:11px;color:#888;margin-top:1px;">Last seen '+daysMiaD+' days ago — consider reaching out</div></div></div>');
+      if(isMiaD){
+        var contacted = m.miaContacted;
+        alerts.push(
+          '<div style="background:rgba(255,85,85,0.08);border:1.5px solid rgba(255,85,85,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;">'+
+            '<span style="font-size:22px;">⚠️</span>'+
+            '<div style="flex:1;">'+
+              '<div style="font-weight:800;font-size:13px;color:#ff5555;">Missing in Action</div>'+
+              '<div style="font-size:11px;color:#888;margin-top:1px;">Last seen '+daysMiaD+' days ago</div>'+
+              (contacted?'<div style="font-size:11px;color:#5ce8a8;margin-top:4px;font-weight:700;">✓ Contacted '+fmtD(contacted.date)+(contacted.trainer?' · '+esc(contacted.trainer):'')+'</div>':'')+
+            '</div>'+
+            (contacted
+              ? '<button data-a="mia-uncontacted" style="flex-shrink:0;background:rgba(92,232,168,0.1);border:1.5px solid #5ce8a8;border-radius:8px;color:#5ce8a8;font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit;">Undo</button>'
+              : '<button data-a="mia-contacted" style="flex-shrink:0;background:rgba(92,232,168,0.1);border:1.5px solid #5ce8a8;border-radius:8px;color:#5ce8a8;font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:inherit;">Mark Contacted</button>'
+            )+
+          '</div>'
+        );
+      }
       var rows = '';
       if(m.goal) rows += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1e1e1e;gap:12px;"><span style="font-size:12px;color:#555;font-weight:700;white-space:nowrap;">Goal</span><span style="font-size:13px;color:#e55a00;font-weight:700;text-align:right;">'+esc(m.goal)+'</span></div>';
       if(!alerts.length && !rows) return '';
@@ -1355,25 +1376,6 @@ function renderDetail(){
         '<div class="ibox"><div class="ilbl">Modifications</div><div class="ival" style="color:'+(act.length?"#ff5555":"#5ce8a8")+'">'+(act.length||"None")+'</div></div>'+
       '</div>'+
     '</div>'+
-    // HOSPITALITY PANEL
-    (function(){
-      var alerts = [];
-      var t2=new Date(); var mm2=String(t2.getMonth()+1).padStart(2,'0'); var dd2=String(t2.getDate()).padStart(2,'0');
-      var isBdayD = m.birthday && m.birthday.substring(5)===(mm2+'-'+dd2);
-      if(isBdayD) alerts.push('<div style="background:rgba(255,193,7,0.12);border:1.5px solid rgba(255,193,7,0.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🎂</span><div><div style="font-weight:800;font-size:13px;color:#ffc107;">Birthday Today!</div><div style="font-size:11px;color:#888;margin-top:1px;">Wish them a happy birthday</div></div></div>');
-      if(isMilestone) alerts.push('<div style="background:rgba(255,215,0,0.1);border:1.5px solid rgba(255,215,0,0.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⭐</span><div><div style="font-weight:800;font-size:13px;color:#ffd700;">'+checkinCount+' Check-In Milestone!</div><div style="font-size:11px;color:#888;margin-top:1px;">Celebrate this achievement with them</div></div></div>');
-      if(isAnnivD) alerts.push('<div style="background:rgba(196,181,253,0.1);border:1.5px solid rgba(196,181,253,0.4);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">🎉</span><div><div style="font-weight:800;font-size:13px;color:#c4b5fd;">'+(annexDaysD===0?joinYearsD+'-Year Gym Anniversary Today!':'Gym Anniversary in '+annexDaysD+' day'+(annexDaysD===1?'':'s'))+'</div><div style="font-size:11px;color:#888;margin-top:1px;">'+joinYearsD+' year'+(joinYearsD===1?'':'s')+' strong — acknowledge it!</div></div></div>');
-      if(isWelcomeBackD) alerts.push('<div style="background:rgba(92,232,168,0.1);border:1.5px solid rgba(92,232,168,0.35);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">👋</span><div><div style="font-weight:800;font-size:13px;color:#5ce8a8;">Welcome Back!</div><div style="font-size:11px;color:#888;margin-top:1px;">Haven\'t seen them in '+daysMiaD+' days — great to have them back</div></div></div>');
-      if(isMiaD) alerts.push('<div style="background:rgba(255,85,85,0.08);border:1.5px solid rgba(255,85,85,0.3);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">⚠️</span><div><div style="font-weight:800;font-size:13px;color:#ff5555;">Missing in Action</div><div style="font-size:11px;color:#888;margin-top:1px;">Last seen '+daysMiaD+' days ago — consider reaching out</div></div></div>');
-      var rows = '';
-      if(m.goal) rows += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1e1e1e;gap:12px;"><span style="font-size:12px;color:#555;font-weight:700;white-space:nowrap;">Goal</span><span style="font-size:13px;color:#e55a00;font-weight:700;text-align:right;">'+esc(m.goal)+'</span></div>';
-      if(!alerts.length && !rows) return '';
-      return '<div class="sec">'+
-        '<div class="sech">🤝 Hospitality</div>'+
-        (alerts.length?'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:'+(rows?'14px':'0')+';">'+alerts.join('')+'</div>':'')+
-        (rows?'<div>'+rows+'</div>':'')+
-      '</div>';
-    }())+
     // BOOK
     '<div class="sec">'+
       '<div class="sech">&#128218; Current Book</div>'+
@@ -1393,7 +1395,7 @@ function renderDetail(){
   var selNdIdx = nd.recentLock ? ndNext.idx : nd.idx;
 
   var lastCheckinId = null;
-  function doCheckin(dayToUse){
+  function doCheckin(dayToUse, noteText){
     var mm = gm(); if(!mm) return;
     var checkins = JSON.parse(JSON.stringify(mm.checkins||[]));
     var rot = mm.rotation||[];
@@ -1416,6 +1418,16 @@ function renderDetail(){
     if(dayToUse==="Legs" && ph==="Phase 7"){
       mm.p7legsSession = ((mm.p7legsSession||0) + 1) % 2;
     }
+    // save quick session note if provided
+    if(noteText && noteText.trim()){
+      var dd2 = JSON.parse(JSON.stringify(mm.dayData||{}));
+      dd2[dayToUse] = dd2[dayToUse]||{injuries:[],notes:[]};
+      dd2[dayToUse].notes = dd2[dayToUse].notes||[];
+      dd2[dayToUse].notes.push({id:uid(), date:today(), text:noteText.trim(), author:trainer, checkinNote:true});
+      mm.dayData = dd2;
+    }
+    // clear MIA contacted flag when member checks back in
+    if(mm.miaContacted) delete mm.miaContacted;
     saveM(mm);
   }
 
@@ -1506,7 +1518,9 @@ function renderDetail(){
   // Check In Now button = check in on highlighted day
   $("ci-btn").addEventListener("click", function(){
     if($("ci-btn").disabled) return;
-    doCheckin(selDay);
+    var ciNoteInp = $("ci-note-inp");
+    var ciNote = ciNoteInp ? ciNoteInp.value.trim() : "";
+    doCheckin(selDay, ciNote);
     $("ci-btn").textContent = "✓ Checked In on "+selDay+"!";
     $("ci-btn").style.background = "#e55a00";
     $("ci-btn").style.color = "#000";
@@ -1747,6 +1761,16 @@ function renderDetail(){
       if(db) db.ref("members/"+mm.id).set(mm);
       renderList();
     }
+    else if(a==="mia-contacted"){
+      var mm=gm(); if(!mm) return;
+      mm.miaContacted = {date:today(), trainer:trainer};
+      saveM(mm);
+    }
+    else if(a==="mia-uncontacted"){
+      var mm=gm(); if(!mm) return;
+      delete mm.miaContacted;
+      saveM(mm);
+    }
     else if(a==="dm"){ if(confirm("Remove "+gm().name+"?")){ if(db)db.ref("members/"+curId).remove(); $("back-btn").click(); } }
     else if(a==="del-checkin"){
       var mm = gm(); if(!mm) return;
@@ -1817,6 +1841,12 @@ function renderDetail(){
               if(c.id!==id) return c;
               return Object.assign({},c,{bar:newBar});
             });
+            // if this was the most recent check-in for that day, sync the rotation tracker
+            var dayLast = (mm2.checkins||[]).filter(function(c){return c.day===ci.day;});
+            if(dayLast.length && dayLast[dayLast.length-1].id===id){
+              if(ci.day==="Legs") mm2.lastLegsBar = newBar;
+              if(ci.day==="Back") mm2.lastBackBar = newBar;
+            }
             saveM(mm2);
             closeM();
           });
@@ -1971,9 +2001,18 @@ function openBookModal(){
 function openInjForm(inj, day){
   var id = inj ? inj.id : null;
   var so = INJ_ST.map(function(s){return'<option'+(inj&&inj.status===s?' selected':'')+'>'+s+'</option>';}).join('');
+  var mm0 = gm();
+  var rotDays = (mm0&&mm0.rotation||[]).map(function(r){return rDay(r);});
+  var allDayOpts = DAYS.filter(function(d){
+    return rotDays.indexOf(d)!==-1 || d===day;
+  });
+  if(allDayOpts.indexOf(day)===-1) allDayOpts.unshift(day);
+  var dayOpts = allDayOpts.map(function(d){return'<option value="'+d+'"'+(d===day?' selected':'')+'>'+d+'</option>';}).join('');
   openM(
     '<div class="mhandle"></div>'+
     '<div class="mh2">'+(inj?'Edit Modification':'Log Modification')+'</div>'+
+    '<div class="fg"><label>Day</label><select id="ijd-day" style="border-color:#e55a00;color:#ffc107;">'+dayOpts+'</select></div>'+
+    '<div class="fg"><label>Body Part / Area</label><input id="ijb" value="'+esc(inj?inj.bodyPart||'':'')+'" placeholder="e.g. Lower Back, Left Knee, Shoulder..." autocomplete="off"></div>'+
     '<div class="fg"><label>Date</label><input id="ijd" type="date" value="'+esc(inj?inj.date||today():today())+'"></div>'+
     '<div class="fg"><label>Status</label><select id="ijs">'+so+'</select></div>'+
     '<div class="fg"><label>Notes &amp; Restrictions</label><textarea id="ijn">'+esc(inj?inj.note||'':'')+'</textarea></div>'+
@@ -1982,8 +2021,12 @@ function openInjForm(inj, day){
       $("ifc").addEventListener("click", closeM);
       $("ifs").addEventListener("click", function(){
         var mm = gm();
-        var data = {id:id||uid(), bodyPart:inj?inj.bodyPart||'':'', date:$("ijd").value, status:$("ijs").value, note:($("ijn").value||"").trim()};
-        saveDayInjury(mm, day, data, false); closeM();
+        var newDay = $("ijd-day").value;
+        var data = {id:id||uid(), bodyPart:($("ijb").value||"").trim(), date:$("ijd").value, status:$("ijs").value, note:($("ijn").value||"").trim()};
+        // if editing and day changed, remove from old day first
+        if(id && newDay !== day) saveDayInjury(mm, day, id, true);
+        saveDayInjury(mm, newDay, data, false);
+        closeM();
       });
     }
   );
@@ -2511,12 +2554,37 @@ function openExport(){
   openM(
     '<div class="mhandle"></div>'+
     '<div class="mh2">Export Data</div>'+
-    '<div style="font-size:13px;color:#666;margin-bottom:14px;">'+Object.keys(members).length+' members total</div>'+
+    (function(){
+      var all=Object.values(members); var withEmail=all.filter(function(m){return m.email&&m.email.trim();});
+      return '<div style="font-size:13px;color:#666;margin-bottom:14px;">'+all.length+' members &nbsp;·&nbsp; <span style="color:#5ce8a8;">'+withEmail.length+' with email</span></div>';
+    }())+
+    '<button class="fsave" id="econtacts" style="width:100%;margin-bottom:10px;background:#1a3a2a;border-color:#5ce8a8;color:#5ce8a8;">📧 Export Contacts (Newsletter)</button>'+
     '<button class="fsave" id="ecsv" style="width:100%;margin-bottom:10px;">Export CSV (Excel)</button>'+
     '<button class="fsave" id="ejson" style="width:100%;margin-bottom:10px;background:#2a2a2a;">Export JSON (Backup)</button>'+
     '<button class="fcancel" id="ecl" style="width:100%;padding:13px;border-radius:10px;">Cancel</button>',
     function(){
       $("ecl").addEventListener("click", closeM);
+      $("econtacts").addEventListener("click", function(){
+        var all = Object.values(members).slice().sort(function(a,b){return (a.name||"").localeCompare(b.name||"");});
+        var withEmail = all.filter(function(m){return m.email&&m.email.trim();});
+        var noEmail = all.filter(function(m){return !m.email||!m.email.trim();});
+        var rows=[["First Name","Last Name","Email","Phone"]];
+        withEmail.forEach(function(m){
+          var parts=(m.name||"").trim().split(/\s+/);
+          var first=parts[0]||""; var last=parts.slice(1).join(" ")||"";
+          rows.push([first, last, m.email.trim(), m.phone||""]);
+        });
+        if(noEmail.length){
+          rows.push(["","","",""]);
+          rows.push(["--- NO EMAIL ON FILE ("+noEmail.length+") ---","","",""]);
+          noEmail.forEach(function(m){
+            var parts=(m.name||"").trim().split(/\s+/);
+            rows.push([parts[0]||"", parts.slice(1).join(" ")||"", "", m.phone||""]);
+          });
+        }
+        var csv=rows.map(function(r){return r.map(function(v){return'"'+String(v==null?"":v).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+        dlFile(new Blob(["﻿"+csv],{type:"text/csv;charset=utf-8;"}),"gift_contacts.csv"); closeM();
+      });
       $("ecsv").addEventListener("click", function(){
         var rows=[["Name","Phone","Email","Phase","Join Date","Total Check-Ins","Active Modifications","Modification Notes"]];
         Object.values(members).forEach(function(m){
