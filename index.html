@@ -296,6 +296,7 @@ var FB = {
 
 var DAYS = ["Legs","Chest","Back","Shoulders","Arms","Rest","Phoenix"];
 var PHASES = ["Phase 1","Phase 2","Phase 3","Phase 4","Phase 5","Phase 6","Phase 7","Phase 8","Phase 9","Phase 10","Phoenix","None"];
+var planDraft = null; // used by the custom plan builder modal
 var INJ_ST = ["Active","Monitoring","Resolved"];
 var AVC = ["#e55a00","#cc4400","#ff7733","#aa3300","#ff8800","#bb4400"];
 var DAY_COL = {Legs:"#ff7733",Chest:"#ff7777",Back:"#6bb3ff",Shoulders:"#c4b5fd",Arms:"#5ce8a8",Rest:"#666",Phoenix:"#ff5555"};
@@ -1172,7 +1173,13 @@ function renderDetail(){
     var modHTML = mods.length ? '<div style="margin-top:3px;">'+mods.map(function(i){
       return '<span style="display:inline-block;font-size:10px;font-weight:700;color:#e55a00;background:rgba(229,90,0,0.12);border-radius:6px;padding:1px 6px;margin-right:3px;">✎ Mod '+fmtD(i.date)+'</span>';
     }).join('')+'</div>' : '';
-    var barEditable = showFix && (c.day==="Legs"||c.day==="Back"||c.day==="Chest"||c.day==="Shoulders");
+    var cp = phaseNum(c.phase||"");
+    var barEditable = showFix && (
+      (c.day==="Legs"       && cp>=2) ||
+      (c.day==="Back"       && cp>=5) ||
+      (c.day==="Chest"      && cp>=4) ||
+      (c.day==="Shoulders"  && cp>=1)
+    );
     return '<div class="hist-item" style="align-items:center;">'+
       '<div>'+
         '<div style="font-weight:700;font-size:15px;">'+esc(c.day)+'</div>'+
@@ -1241,6 +1248,21 @@ function renderDetail(){
       '<div class="sech">&#9654; Check In</div>'+
       injWarn+
       '<div class="ci-box">'+
+        (function(){
+          var todayCompletion=(m.completions||{})[today()];
+          if(!todayCompletion) return '';
+          return '<div style="background:rgba(92,232,168,0.1);border:1.5px solid rgba(92,232,168,0.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">'+
+            '<span style="font-size:22px;">&#128247;</span>'+
+            '<div>'+
+              '<div style="font-weight:800;font-size:13px;color:#5ce8a8;">Completed Workout via App</div>'+
+              '<div style="font-size:12px;color:#888;margin-top:1px;">'+
+                (todayCompletion.vol?todayCompletion.vol.toLocaleString()+' lbs &nbsp;&middot;&nbsp; ':'')+
+                (todayCompletion.sets?todayCompletion.sets+' sets &nbsp;&middot;&nbsp; ':'')+
+                (todayCompletion.reps?todayCompletion.reps+' reps':'').replace(/&nbsp;&middot;&nbsp; $/,'')+
+              '</div>'+
+            '</div>'+
+          '</div>';
+        }())+
         (function(){ if(!m.birthday) return ''; var t2=new Date(); var mm2=String(t2.getMonth()+1).padStart(2,'0'); var dd2=String(t2.getDate()).padStart(2,'0'); var isToday=m.birthday.substring(5)===(mm2+'-'+dd2); return isToday?'<div style="font-size:13px;font-weight:800;color:#ffc107;background:rgba(0,0,0,0.2);border-radius:8px;padding:6px 12px;margin-bottom:10px;text-align:center;">🎂 Happy Birthday!</div>':''; }())+
         (function(){
           var label = nd.recentLock ? '&#10003; Checked In Today' : '&#9654; Today&#39;s Session';
@@ -1309,6 +1331,7 @@ function renderDetail(){
         DAYS.map(function(d){var btnSel=nd.recentLock?(d===ndNext.day):(d===sel);return '<button class="ov-btn'+(btnSel?' sel':'')+'" data-day="'+d+'">'+d+'</button>';}).join("")+
       '</div>'+
       '<button class="ci-btn" id="ci-btn"'+(nd.recentLock?' style="background:#2a2a2a;color:#e55a00;border:1.5px solid #e55a00;" disabled':'')+'>'+( nd.recentLock ? '&#10003; Checked In Today' : '&#10003; Check In Now')+'</button>'+
+      (nd.recentLock ? '<button data-a="undo-checkin" style="width:100%;padding:10px;background:none;border:1.5px solid #2a2a2a;border-radius:10px;color:#555;font-size:13px;font-weight:700;margin-top:6px;font-family:inherit;cursor:pointer;">&#8617; Undo Check-In</button>' : '')+
       (!nd.recentLock ? '<textarea id="ci-note-inp" placeholder="Quick session note... (optional)" rows="2" style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid #2a2a2a;border-radius:10px;color:#ccc;font-size:13px;padding:10px 12px;margin-top:8px;font-family:inherit;resize:none;box-sizing:border-box;display:block;"></textarea>' : '')+
       '<button style="width:100%;padding:14px;background:'+(m.isPhoenix?'rgba(255,85,85,0.15)':'none')+';border:1.5px solid '+(m.isPhoenix?'#ff5555':'#333')+';border-radius:10px;color:'+(m.isPhoenix?'#ff5555':'#888')+';font-size:15px;font-weight:800;margin-top:8px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;" id="phoenix-btn">'+
         '<input type="checkbox" id="phoenix-toggle" '+(m.isPhoenix?'checked':'')+' style="width:22px;height:22px;accent-color:#ff5555;cursor:pointer;flex-shrink:0;">'+
@@ -1373,6 +1396,23 @@ function renderDetail(){
       '<div class="sech">&#128293; Cardio Debt</div>'+
       cardioHTML(m)+
     '</div>'+
+    // HOMEWORK
+    '<div class="sec">'+
+      '<div class="sech">&#128218; Off-Day Homework</div>'+
+      (m.homework && m.homework.text ?
+        '<div style="background:rgba(229,90,0,0.06);border:1px solid rgba(229,90,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:10px;">'+
+          (m.homework.date?'<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Assigned '+fmtD(m.homework.date)+(m.homework.updatedBy?' &middot; '+esc(m.homework.updatedBy):'')+'</div>':'')+
+          '<div style="font-size:13px;color:#ccc;line-height:1.75;white-space:pre-wrap;">'+esc(m.homework.text)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button data-a="set-homework" style="flex:1;padding:11px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#9998; Edit</button>'+
+          '<button data-a="clear-homework" style="padding:11px 14px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#215; Clear</button>'+
+        '</div>'
+      :
+        '<div style="color:#555;font-size:13px;margin-bottom:10px;">No homework assigned yet.</div>'+
+        '<button data-a="set-homework" style="width:100%;padding:12px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Assign Homework</button>'
+      )+
+    '</div>'+
     // PROFILE
     '<div class="sec">'+
       '<div class="grid2">'+
@@ -1381,6 +1421,74 @@ function renderDetail(){
         '<div class="ibox"><div class="ilbl">Check-Ins</div><div class="ival" style="color:#e55a00">'+(m.checkins||[]).length+'</div></div>'+
         '<div class="ibox"><div class="ilbl">Modifications</div><div class="ival" style="color:'+(act.length?"#ff5555":"#5ce8a8")+'">'+(act.length||"None")+'</div></div>'+
       '</div>'+
+    '</div>'+
+    // CUSTOM PROGRAM
+    (function(){
+      var cp=m.customPlan;
+      var inner='';
+      if(cp&&cp.name){
+        var dayCount=(cp.days||[]).length;
+        var exCount=(cp.days||[]).reduce(function(t,d){return t+(d.exercises||[]).length;},0);
+        var curDay=cp.currentDay||(cp.days&&cp.days[0]?cp.days[0].name:'');
+        inner='<div style="background:rgba(229,90,0,0.08);border:1px solid rgba(229,90,0,0.25);border-radius:10px;padding:12px 14px;margin-bottom:10px;">'+
+          '<div style="font-weight:800;font-size:15px;color:#e55a00;margin-bottom:6px;">&#127942; '+esc(cp.name)+'</div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">'+
+            (curDay?'<span style="background:#1a1a1a;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:#ffc107;">&#9654; '+esc(curDay)+'</span>':'')+
+            (cp.phase?'<span style="background:#1a1a1a;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:#c4b5fd;">'+esc(cp.phase)+'</span>':'')+
+          '</div>'+
+          '<div style="font-size:12px;color:#555;">'+dayCount+' day'+(dayCount===1?'':'s')+' &nbsp;&middot;&nbsp; '+exCount+' exercise'+(exCount===1?'':'s')+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button data-a="edit-custom-plan" style="flex:1;padding:11px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#9998; Edit Plan</button>'+
+          '<button data-a="remove-custom-plan" style="padding:11px 14px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#215;</button>'+
+        '</div>';
+      } else {
+        inner='<div style="color:#555;font-size:13px;margin-bottom:10px;">Standard G.I.F.T. program assigned.</div>'+
+          '<button data-a="edit-custom-plan" style="width:100%;padding:12px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Build Custom Program</button>';
+      }
+      return '<div class="sec"><div class="sech">&#127942; Custom Program</div>'+inner+'</div>';
+    }())+
+    // MESSAGES
+    (function(){
+      var msgList=m.messages||[];
+      var msgH='';
+      if(msgList.length){
+        msgH=[].concat(msgList).reverse().slice(0,5).map(function(msg){
+          return '<div style="background:#1a1a1a;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
+              '<span style="font-weight:700;font-size:12px;color:#e55a00;">'+esc(msg.from||trainer)+'</span>'+
+              '<span style="font-size:11px;color:#555;">'+esc(msg.date||'')+(msg.time?' · '+esc(msg.time):'')+'</span>'+
+            '</div>'+
+            '<div style="font-size:13px;color:#ccc;line-height:1.6;white-space:pre-wrap;">'+esc(msg.text)+'</div>'+
+          '</div>';
+        }).join('');
+      } else {
+        msgH='<div style="color:#555;font-size:13px;margin-bottom:10px;">No messages sent yet.</div>';
+      }
+      return '<div class="sec">'+
+        '<div class="sech">&#128172; Messages <button class="addbtn" data-a="send-msg">+ Send</button></div>'+
+        msgH+
+        (msgList.length>5?'<div style="color:#555;font-size:12px;text-align:center;margin-top:2px;">+ '+(msgList.length-5)+' older</div>':'')+
+      '</div>';
+    }())+
+    // ONLINE SESSION
+    '<div class="sec">'+
+      '<div class="sech">&#127909; Online Session</div>'+
+      (m.onlineSession && m.onlineSession.link ?
+        '<div style="background:rgba(92,232,168,0.08);border:1.5px solid rgba(92,232,168,0.3);border-radius:12px;padding:14px;margin-bottom:10px;">'+
+          '<div style="font-size:13px;font-weight:800;color:#5ce8a8;margin-bottom:8px;">&#128197; Session Scheduled</div>'+
+          (m.onlineSession.date?'<div style="font-size:14px;color:#eee;font-weight:700;margin-bottom:2px;">'+esc(m.onlineSession.date)+(m.onlineSession.time?' &nbsp;&#128336; '+esc(m.onlineSession.time):'')+'</div>':'')+
+          (m.onlineSession.note?'<div style="font-size:12px;color:#888;margin-top:6px;font-style:italic;">'+esc(m.onlineSession.note)+'</div>':'')+
+          '<div style="font-size:11px;color:#555;margin-top:8px;word-break:break-all;">&#128279; '+esc(m.onlineSession.link)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button data-a="sched-session" style="flex:1;padding:12px;background:rgba(92,232,168,0.1);border:1.5px solid #5ce8a8;border-radius:9px;color:#5ce8a8;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#9998; Edit Session</button>'+
+          '<button data-a="clear-session" style="padding:12px 16px;background:rgba(255,85,85,0.08);border:1.5px solid rgba(255,85,85,0.3);border-radius:9px;color:#ff5555;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#215; Clear</button>'+
+        '</div>'
+      :
+        '<div style="color:#555;font-size:13px;margin-bottom:12px;">No session scheduled.</div>'+
+        '<button data-a="sched-session" style="width:100%;padding:13px;background:rgba(92,232,168,0.1);border:1.5px solid #5ce8a8;border-radius:9px;color:#5ce8a8;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Schedule Session</button>'
+      )+
     '</div>'+
     // BOOK
     '<div class="sec">'+
@@ -1782,7 +1890,111 @@ function renderDetail(){
       delete mm.miaContacted;
       saveM(mm);
     }
+    else if(a==="edit-custom-plan"){
+      var mm=gm(); if(!mm) return;
+      openCustomPlanModal(mm);
+    }
+    else if(a==="remove-custom-plan"){
+      var mm=gm(); if(!mm) return;
+      if(confirm('Remove custom program from '+mm.name+'? They will revert to the standard G.I.F.T. plan.')){
+        delete mm.customPlan; saveM(mm);
+      }
+    }
+    else if(a==="send-msg"){
+      var mm=gm(); if(!mm) return;
+      openM(
+        '<div class="mhandle"></div>'+
+        '<div style="font-weight:800;font-size:16px;margin-bottom:4px;">&#128172; Send Message</div>'+
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">To: <b style="color:#e55a00;">'+esc(mm.name)+'</b></div>'+
+        '<div class="fg"><label>Message</label>'+
+        '<textarea id="msg-text" rows="5" placeholder="Type your message..." style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:10px;color:#eee;padding:10px 12px;font-size:14px;line-height:1.65;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea></div>'+
+        '<div class="fbtns"><button class="fcancel" id="msg-cancel">Cancel</button><button class="fsave" id="msg-save">Send &#9654;</button></div>',
+        function(){
+          document.getElementById('msg-cancel').addEventListener('click',function(){closeM();});
+          document.getElementById('msg-save').addEventListener('click',function(){
+            var text=document.getElementById('msg-text').value.trim();
+            if(!text){alert('Please enter a message.');return;}
+            var mm2=gm(); if(!mm2) return;
+            var msgs=JSON.parse(JSON.stringify(mm2.messages||[]));
+            var now=new Date();
+            msgs.push({id:Date.now()+'',text:text,from:trainer,date:today(),time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})});
+            mm2.messages=msgs;
+            saveM(mm2);
+            closeM();
+          });
+        }
+      );
+    }
+    else if(a==="set-homework"){
+      var mm=gm(); if(!mm) return;
+      var hw=mm.homework||{};
+      openM(
+        '<div class="mhandle"></div>'+
+        '<div style="font-weight:800;font-size:16px;margin-bottom:6px;">&#128218; Off-Day Homework</div>'+
+        '<div style="font-size:13px;color:#888;margin-bottom:16px;">Exercises &amp; tasks for off days or vacation</div>'+
+        '<div class="fg"><label>Homework Assignment</label>'+
+        '<textarea id="hw-text" rows="7" placeholder="e.g. 1. 20-min walk daily&#10;2. 3 sets bodyweight squats x20&#10;3. 10 min stretching" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:10px;color:#eee;padding:10px 12px;font-size:14px;line-height:1.65;resize:vertical;font-family:inherit;box-sizing:border-box;">'+esc(hw.text||'')+'</textarea></div>'+
+        '<div class="fbtns"><button class="fcancel" id="hw-cancel">Cancel</button><button class="fsave" id="hw-save">Save</button></div>',
+        function(){
+          document.getElementById('hw-cancel').addEventListener('click', function(){ closeM(); });
+          document.getElementById('hw-save').addEventListener('click', function(){
+            var text=document.getElementById('hw-text').value.trim();
+            if(!text){alert('Please enter homework text.');return;}
+            var mm2=gm(); if(!mm2) return;
+            mm2.homework={text:text, date:today(), updatedBy:trainer};
+            saveM(mm2);
+            closeM();
+          });
+        }
+      );
+    }
+    else if(a==="clear-homework"){
+      var mm=gm(); if(!mm) return;
+      if(confirm('Clear homework for '+mm.name+'?')){ delete mm.homework; saveM(mm); }
+    }
+    else if(a==="sched-session"){
+      var mm=gm(); if(!mm) return;
+      var sess=mm.onlineSession||{};
+      openM(
+        '<div class="mhandle"></div>'+
+        '<div style="font-weight:800;font-size:16px;margin-bottom:16px;">&#127909; Schedule Online Session</div>'+
+        '<div class="fg"><label>Session Link (Zoom, Google Meet, etc.)</label><input id="sess-link" type="url" value="'+esc(sess.link||'')+'" placeholder="https://zoom.us/j/..."></div>'+
+        '<div class="f2">'+
+          '<div class="fg"><label>Date</label><input id="sess-date" type="date" value="'+esc(sess.date||'')+'"></div>'+
+          '<div class="fg"><label>Time</label><input id="sess-time" type="time" value="'+esc(sess.time||'')+'"></div>'+
+        '</div>'+
+        '<div class="fg"><label>Note to Member</label><input id="sess-note" value="'+esc(sess.note||'')+'" placeholder="e.g. We\'ll focus on form today" autocomplete="off"></div>'+
+        '<div class="fbtns"><button class="fcancel" id="sess-cancel">Cancel</button><button class="fsave" id="sess-save">Save</button></div>',
+        function(){
+          document.getElementById('sess-cancel').addEventListener('click', function(){ closeM(); });
+          document.getElementById('sess-save').addEventListener('click', function(){
+            var link=document.getElementById('sess-link').value.trim();
+            if(!link){ alert('Please enter a session link.'); return; }
+            var mm2=gm(); if(!mm2) return;
+            mm2.onlineSession={link:link, date:document.getElementById('sess-date').value, time:document.getElementById('sess-time').value, note:document.getElementById('sess-note').value.trim()};
+            saveM(mm2);
+            closeM();
+          });
+        }
+      );
+    }
+    else if(a==="clear-session"){
+      var mm=gm(); if(!mm) return;
+      if(confirm('Clear scheduled session for '+mm.name+'?')){ delete mm.onlineSession; saveM(mm); }
+    }
     else if(a==="dm"){ if(confirm("Remove "+gm().name+"?")){ if(db)db.ref("members/"+curId).remove(); $("back-btn").click(); } }
+    else if(a==="undo-checkin"){
+      var mm = gm(); if(!mm) return;
+      var todayCIs = (mm.checkins||[]).filter(function(c){ return c.date===today(); });
+      if(!todayCIs.length) return;
+      var last = todayCIs[todayCIs.length-1];
+      if(!confirm('Remove the '+esc(last.day)+' check-in for '+mm.name+'?')) return;
+      mm.checkins = (mm.checkins||[]).filter(function(c){ return c.id!==last.id; });
+      members[mm.id] = mm;
+      renderDetail();
+      if(db) db.ref("members/"+mm.id).set(mm);
+      renderList();
+    }
     else if(a==="del-checkin"){
       var mm = gm(); if(!mm) return;
       mm.checkins = (mm.checkins||[]).filter(function(c){ return c.id !== id; });
@@ -1827,6 +2039,12 @@ function renderDetail(){
     else if(a==="fix-bar"){
       var mm = gm(); if(!mm) return;
       var ci = (mm.checkins||[]).find(function(c){ return c.id===id; }); if(!ci) return;
+      var cp2 = phaseNum(ci.phase||"");
+      // guard: only open bar editor when this phase actually alternates bars
+      if(ci.day==="Legs" && cp2<2) return;
+      if(ci.day==="Back" && cp2<5) return;
+      if(ci.day==="Chest" && cp2<4) return;
+      if(ci.day==="Shoulders" && cp2<1) return;
       var barOpts;
       if(ci.day==="Legs") barOpts = ["Transformer Bar","Straight Bar"];
       else if(ci.day==="Back") barOpts = ["Trap Bar","Straight Bar"];
@@ -1865,6 +2083,103 @@ function renderDetail(){
       );
     }
 
+  });
+}
+
+// ── CUSTOM PLAN BUILDER ──────────────────────────────────────
+function openCustomPlanModal(mm){
+  planDraft = mm.customPlan ? JSON.parse(JSON.stringify(mm.customPlan)) : {name:'',phase:'',currentDay:'',days:[]};
+  openM(
+    '<div class="mhandle"></div>'+
+    '<div style="font-weight:800;font-size:16px;margin-bottom:4px;">&#127942; Custom Program</div>'+
+    '<div style="font-size:13px;color:#888;margin-bottom:16px;">Building plan for <b style="color:#e55a00;">'+esc(mm.name)+'</b></div>'+
+    '<div id="cp-form"></div>'+
+    '<div class="fbtns"><button class="fcancel" id="cp-cancel">Cancel</button><button class="fsave" id="cp-save">Save Plan</button></div>',
+    function(){
+      renderPlanForm();
+      document.getElementById('cp-cancel').addEventListener('click',function(){closeM();});
+      document.getElementById('cp-save').addEventListener('click',function(){
+        collectPlanDraft();
+        if(!planDraft.name.trim()){alert('Please enter a program name.');return;}
+        if(!planDraft.days.length){alert('Add at least one training day.');return;}
+        var mm2=gm(); if(!mm2) return;
+        planDraft.currentDay=planDraft.currentDay||(planDraft.days[0]?planDraft.days[0].name:'');
+        mm2.customPlan=planDraft;
+        saveM(mm2); closeM();
+      });
+    }
+  );
+}
+
+function collectPlanDraft(){
+  if(!planDraft) return;
+  planDraft.name=(document.getElementById('pf-name')||{value:planDraft.name}).value||planDraft.name;
+  planDraft.phase=(document.getElementById('pf-phase')||{value:planDraft.phase}).value||planDraft.phase;
+  planDraft.currentDay=(document.getElementById('pf-curday')||{value:planDraft.currentDay}).value||planDraft.currentDay;
+  (planDraft.days||[]).forEach(function(day,di){
+    var dn=document.getElementById('pf-day-'+di);
+    if(dn) day.name=dn.value;
+    (day.exercises||[]).forEach(function(ex,ei){
+      var en=document.getElementById('pf-ex-name-'+di+'-'+ei);
+      var et=document.getElementById('pf-ex-target-'+di+'-'+ei);
+      var es=document.getElementById('pf-ex-sets-'+di+'-'+ei);
+      if(en) ex.name=en.value;
+      if(et) ex.target=et.value;
+      if(es) ex.sets=parseInt(es.value)||1;
+    });
+  });
+}
+
+function renderPlanForm(){
+  var f=document.getElementById('cp-form'); if(!f) return;
+  var dayNames=(planDraft.days||[]).map(function(d){return d.name||'';});
+  var curDayOpts=dayNames.map(function(n){return'<option value="'+esc(n)+'"'+(planDraft.currentDay===n?' selected':'')+'>'+esc(n||'(unnamed day)')+'</option>';}).join('');
+  var daysHtml=(planDraft.days||[]).map(function(day,di){
+    var exRows=(day.exercises||[]).map(function(ex,ei){
+      return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">'+
+        '<input id="pf-ex-name-'+di+'-'+ei+'" value="'+esc(ex.name||'')+'" placeholder="Exercise name" style="flex:2;background:#111;border:1px solid #333;border-radius:8px;color:#eee;padding:8px 10px;font-size:13px;font-family:inherit;">'+
+        '<input id="pf-ex-target-'+di+'-'+ei+'" value="'+esc(ex.target||'')+'" placeholder="Target (e.g. 3×10)" style="flex:2;background:#111;border:1px solid #333;border-radius:8px;color:#eee;padding:8px 10px;font-size:13px;font-family:inherit;">'+
+        '<input id="pf-ex-sets-'+di+'-'+ei+'" type="number" min="1" value="'+(ex.sets||3)+'" style="width:52px;background:#111;border:1px solid #333;border-radius:8px;color:#eee;padding:8px 6px;font-size:13px;text-align:center;font-family:inherit;">'+
+        '<button data-a="pf-rm-ex" data-di="'+di+'" data-ei="'+ei+'" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;padding:0 4px;line-height:1;" title="Remove exercise">&#215;</button>'+
+      '</div>';
+    }).join('');
+    return '<div style="background:#111;border:1.5px solid #222;border-radius:12px;padding:12px 14px;margin-bottom:10px;">'+
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">'+
+        '<input id="pf-day-'+di+'" value="'+esc(day.name||'')+'" placeholder="Day name (e.g. Power Day)" style="flex:1;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;color:#eee;padding:9px 12px;font-size:14px;font-weight:700;font-family:inherit;">'+
+        '<button data-a="pf-rm-day" data-di="'+di+'" style="background:none;border:none;color:#666;font-size:20px;cursor:pointer;padding:0 4px;" title="Remove day">&#215;</button>'+
+      '</div>'+
+      exRows+
+      '<button data-a="pf-add-ex" data-di="'+di+'" style="margin-top:4px;width:100%;padding:8px;background:rgba(229,90,0,0.07);border:1px dashed #e55a00;border-radius:8px;color:#e55a00;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">+ Add Exercise</button>'+
+    '</div>';
+  }).join('');
+  f.innerHTML=
+    '<div class="fg"><label>Program Name</label><input id="pf-name" value="'+esc(planDraft.name||'')+'" placeholder="e.g. Wrestling Foundation Program" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:10px;color:#eee;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box;"></div>'+
+    '<div class="f2">'+
+      '<div class="fg"><label>Phase</label><input id="pf-phase" value="'+esc(planDraft.phase||'')+'" placeholder="e.g. Foundation" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:10px;color:#eee;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box;"></div>'+
+      '<div class="fg"><label>Current Day</label><select id="pf-curday" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:10px;color:#eee;padding:10px 12px;font-size:14px;font-family:inherit;">'+curDayOpts+'</select></div>'+
+    '</div>'+
+    '<div style="font-weight:700;font-size:13px;color:#888;margin:10px 0 6px;">Training Days</div>'+
+    daysHtml+
+    '<button data-a="pf-add-day" style="width:100%;padding:10px;background:rgba(229,90,0,0.07);border:1.5px dashed #e55a00;border-radius:10px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;margin-bottom:6px;">+ Add Day</button>';
+
+  f.querySelectorAll('[data-a]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var act=this.getAttribute('data-a');
+      var di=parseInt(this.getAttribute('data-di'));
+      var ei=parseInt(this.getAttribute('data-ei'));
+      collectPlanDraft();
+      if(act==='pf-add-day'){
+        planDraft.days.push({id:Date.now()+'',name:'',exercises:[]});
+      } else if(act==='pf-rm-day'){
+        planDraft.days.splice(di,1);
+        if(planDraft.currentDay===((planDraft.days[di-1]||planDraft.days[0]||{}).name||'')) planDraft.currentDay='';
+      } else if(act==='pf-add-ex'){
+        planDraft.days[di].exercises.push({id:Date.now()+'',name:'',target:'',sets:3});
+      } else if(act==='pf-rm-ex'){
+        planDraft.days[di].exercises.splice(ei,1);
+      }
+      renderPlanForm();
+    });
   });
 }
 
