@@ -73,6 +73,9 @@ input,select,textarea{font-family:inherit;-webkit-appearance:none;outline:none;}
 .editbtn{padding:8px 12px;background:#e55a00;color:#fff;border-radius:8px;font-size:13px;font-weight:700;flex-shrink:0;}
 
 .detbody{padding:12px 12px 80px;}
+.det-tab-row{display:flex;gap:6px;padding:12px 12px 10px;}
+.det-tab{flex:1;padding:8px 4px;border-radius:20px;font-size:11px;font-weight:800;text-align:center;cursor:pointer;border:1.5px solid #2a2a2a;font-family:'Space Mono',monospace;background:#1a1a1a;color:#555;transition:background .15s,color .15s,border-color .15s;letter-spacing:.4px;}
+.det-tab.active{background:#e55a00;color:#fff;border-color:#e55a00;}
 .sec{background:#1c1c1c;border:1.5px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:12px;}
 .sech{display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:800;margin-bottom:12px;}
 .addbtn{padding:6px 12px;background:#e55a00;color:#fff;border-radius:7px;font-size:12px;font-weight:700;}
@@ -306,6 +309,7 @@ var members = {};
 var trainer = "";
 var curId = null;
 var filt = "All";
+var detTab = "main";
 
 // helpers
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
@@ -872,6 +876,7 @@ function openCardioModal(mode){
 // ── DETAIL ──────────────────────────────────────
 function showDetail(id){
   curId = id;
+  detTab = "main";
   $("page-list").style.display = "none";
   $("page-detail").style.display = "block";
   window.scrollTo(0, 0);
@@ -1105,6 +1110,93 @@ function openWarnModal(day){
   );
 }
 
+// ── CALISTHENICS ──────────────────────────────────────
+var CALIS_FOR_DAY = {
+  "Legs":      "Legs — Hanging Progression",
+  "Chest":     "Chest — Core to Pressing",
+  "Back":      "Back — Posterior Chain",
+  "Shoulders": "Shoulders — Pressing & Stability"
+};
+var CALIS_DAY_COL = {Legs:"#ff7733",Chest:"#ff7777",Back:"#6bb3ff",Shoulders:"#c4b5fd"};
+
+function tCalisItem(bodyId){
+  var body = document.getElementById(bodyId); if(!body) return;
+  var chev = document.getElementById('chev-'+bodyId);
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(chev) chev.textContent = isOpen ? '▸' : '▾';
+}
+
+function calisthenicsHTML(m){
+  var calisData = GUIDE_DATA["Calisthenics"];
+  if(!calisData) return '<div style="color:#555;font-size:13px;">No data.</div>';
+  var rot = (m.rotation||[]).map(function(r){ return rDay(r); });
+  var days = ["Legs","Chest","Back","Shoulders"].filter(function(d){ return rot.indexOf(d)>=0; });
+  if(!days.length) return '<div style="color:#555;font-size:13px;">No training days assigned.</div>';
+  var calis = m.calisthenics||{};
+  return days.map(function(day, di){
+    var phaseTitle = CALIS_FOR_DAY[day];
+    var cp = calisData.phases.find(function(p){ return p.title===phaseTitle; });
+    if(!cp) return '';
+    var exercises = cp.sections ? cp.sections[0].exercises : (cp.exercises||[]);
+    var cur = calis[day]!==undefined ? parseInt(calis[day]) : -1;
+    var col = CALIS_DAY_COL[day]||"#e55a00";
+    var opts = '<option value="-1"'+(cur===-1?' selected':'')+'>&mdash; Not started &mdash;</option>'+
+      exercises.map(function(ex,i){
+        var short = 'Step '+(i+1)+' — '+ex.replace(/^\d+\.\s*/,'').split(' — ')[0];
+        if(short.length>52) short=short.slice(0,52)+'…';
+        return '<option value="'+i+'"'+(cur===i?' selected':'')+'>'+esc(short)+'</option>';
+      }).join('');
+    var items = exercises.map(function(ex,i){
+      var raw = ex.replace(/^\d+\.\s*/,'');
+      var dashIdx = raw.indexOf(' — ');
+      var title = dashIdx>=0 ? raw.slice(0,dashIdx) : raw;
+      var detail = dashIdx>=0 ? raw.slice(dashIdx+3) : '';
+      var isActive = cur===i;
+      var isDone = cur>i && cur>=0;
+      var bodyId = 'cib-'+day+'-'+i;
+      var borderCol = isActive ? col : isDone ? '#22c55e33' : '#1e1e1e';
+      var numBg = isActive ? 'rgba(255,255,255,0.07)' : isDone ? 'rgba(34,197,94,0.07)' : '#1a1a1a';
+      var numCol = isActive ? col : isDone ? '#22c55e' : '#333';
+      var nameCol = isActive ? '#eee' : isDone ? '#555' : '#444';
+      var tag = isActive
+        ? '<span style="font-size:9px;font-weight:700;color:'+col+';background:rgba(255,92,0,0.1);border:1px solid rgba(255,92,0,0.2);border-radius:3px;padding:1px 5px;margin-left:7px;letter-spacing:1px;">NOW</span>'
+        : isDone
+        ? '<span style="font-size:9px;font-weight:700;color:#22c55e;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:3px;padding:1px 5px;margin-left:7px;">✓</span>'
+        : '';
+      var bodyDisplay = (isActive && detail) ? 'block' : 'none';
+      var chevIcon = (isActive && detail) ? '▾' : '▸';
+      return '<div style="border-radius:8px;margin-bottom:3px;border:1px solid '+borderCol+';overflow:hidden;'+
+        (isActive?'background:rgba(255,255,255,0.025);':'')+'">' +
+        '<div onclick="tCalisItem(\''+bodyId+'\')" style="display:flex;align-items:center;gap:9px;padding:8px 10px;cursor:pointer;">'+
+          '<span style="min-width:22px;height:22px;border-radius:6px;background:'+numBg+';border:1px solid '+borderCol+';display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:'+numCol+';flex-shrink:0;">'+(i+1)+'</span>'+
+          '<span style="flex:1;font-size:13px;color:'+nameCol+';font-weight:'+(isActive?'600':'400')+';">'+esc(title)+tag+'</span>'+
+          (detail?'<span style="font-size:11px;color:#444;" id="chev-'+bodyId+'">'+chevIcon+'</span>':'')+
+        '</div>'+
+        (detail?'<div id="'+bodyId+'" style="display:'+bodyDisplay+';padding:0 10px 9px 41px;font-size:12px;color:#888;line-height:1.6;">'+esc(detail)+'</div>':'')+
+      '</div>';
+    }).join('');
+    return (di>0?'<div style="border-top:1px solid #1e1e1e;margin:14px 0 10px;"></div>':'')+
+      '<div style="font-size:11px;font-weight:800;color:'+col+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">'+esc(day)+'</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
+        '<span style="font-size:12px;color:#555;white-space:nowrap;font-weight:700;">Current:</span>'+
+        '<select data-calis-day="'+esc(day)+'" style="flex:1;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;color:#eee;padding:7px 10px;font-size:12px;font-family:inherit;">'+opts+'</select>'+
+      '</div>'+
+      items;
+  }).join('');
+}
+
+function switchDetTab(tab){
+  detTab = tab;
+  ['main','calis'].forEach(function(k){
+    var el = document.getElementById('det-'+k+'-content');
+    if(el) el.style.display = k===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.det-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+}
+
 function renderDetail(){
   var m = gm(); if(!m){ return; }
   $("det-name").textContent = m.name;
@@ -1243,6 +1335,13 @@ function renderDetail(){
   }).join("") : '<div class="empty">No notes yet</div>';
 
   $("detbody").innerHTML =
+    // TAB BAR
+    '<div class="det-tab-row">'+
+      '<button class="det-tab'+(detTab==='main'?' active':'')+'" data-tab="main" onclick="switchDetTab(\'main\')">OVERVIEW</button>'+
+      '<button class="det-tab'+(detTab==='calis'?' active':'')+'" data-tab="calis" onclick="switchDetTab(\'calis\')">CALISTHENICS</button>'+
+    '</div>'+
+    // MAIN TAB
+    '<div id="det-main-content" style="display:'+(detTab==='main'?'block':'none')+';">'+
     // CHECK IN SECTION
     '<div class="sec">'+
       '<div class="sech">&#9654; Check In</div>'+
@@ -1396,23 +1495,6 @@ function renderDetail(){
       '<div class="sech">&#128293; Cardio Debt</div>'+
       cardioHTML(m)+
     '</div>'+
-    // HOMEWORK
-    '<div class="sec">'+
-      '<div class="sech">&#128218; Off-Day Homework</div>'+
-      (m.homework && m.homework.text ?
-        '<div style="background:rgba(229,90,0,0.06);border:1px solid rgba(229,90,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:10px;">'+
-          (m.homework.date?'<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Assigned '+fmtD(m.homework.date)+(m.homework.updatedBy?' &middot; '+esc(m.homework.updatedBy):'')+'</div>':'')+
-          '<div style="font-size:13px;color:#ccc;line-height:1.75;white-space:pre-wrap;">'+esc(m.homework.text)+'</div>'+
-        '</div>'+
-        '<div style="display:flex;gap:8px;">'+
-          '<button data-a="set-homework" style="flex:1;padding:11px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#9998; Edit</button>'+
-          '<button data-a="clear-homework" style="padding:11px 14px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#215; Clear</button>'+
-        '</div>'
-      :
-        '<div style="color:#555;font-size:13px;margin-bottom:10px;">No homework assigned yet.</div>'+
-        '<button data-a="set-homework" style="width:100%;padding:12px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Assign Homework</button>'
-      )+
-    '</div>'+
     // PROFILE
     '<div class="sec">'+
       '<div class="grid2">'+
@@ -1422,6 +1504,29 @@ function renderDetail(){
         '<div class="ibox"><div class="ilbl">Modifications</div><div class="ival" style="color:'+(act.length?"#ff5555":"#5ce8a8")+'">'+(act.length||"None")+'</div></div>'+
       '</div>'+
     '</div>'+
+    // MESSAGES
+    (function(){
+      var msgList=m.messages||[];
+      var msgH='';
+      if(msgList.length){
+        msgH=[].concat(msgList).reverse().slice(0,5).map(function(msg){
+          return '<div style="background:#1a1a1a;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
+              '<span style="font-weight:700;font-size:12px;color:#e55a00;">'+esc(msg.from||trainer)+'</span>'+
+              '<span style="font-size:11px;color:#555;">'+esc(msg.date||'')+(msg.time?' · '+esc(msg.time):'')+'</span>'+
+            '</div>'+
+            '<div style="font-size:13px;color:#ccc;line-height:1.6;white-space:pre-wrap;">'+esc(msg.text)+'</div>'+
+          '</div>';
+        }).join('');
+      } else {
+        msgH='<div style="color:#555;font-size:13px;margin-bottom:10px;">No messages sent yet.</div>';
+      }
+      return '<div class="sec">'+
+        '<div class="sech">&#128172; Messages <button class="addbtn" data-a="send-msg">+ Send</button></div>'+
+        msgH+
+        (msgList.length>5?'<div style="color:#555;font-size:12px;text-align:center;margin-top:2px;">+ '+(msgList.length-5)+' older</div>':'')+
+      '</div>';
+    }())+
     // CUSTOM PROGRAM
     (function(){
       var cp=m.customPlan;
@@ -1447,29 +1552,6 @@ function renderDetail(){
           '<button data-a="edit-custom-plan" style="width:100%;padding:12px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Build Custom Program</button>';
       }
       return '<div class="sec"><div class="sech">&#127942; Custom Program</div>'+inner+'</div>';
-    }())+
-    // MESSAGES
-    (function(){
-      var msgList=m.messages||[];
-      var msgH='';
-      if(msgList.length){
-        msgH=[].concat(msgList).reverse().slice(0,5).map(function(msg){
-          return '<div style="background:#1a1a1a;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'+
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'+
-              '<span style="font-weight:700;font-size:12px;color:#e55a00;">'+esc(msg.from||trainer)+'</span>'+
-              '<span style="font-size:11px;color:#555;">'+esc(msg.date||'')+(msg.time?' · '+esc(msg.time):'')+'</span>'+
-            '</div>'+
-            '<div style="font-size:13px;color:#ccc;line-height:1.6;white-space:pre-wrap;">'+esc(msg.text)+'</div>'+
-          '</div>';
-        }).join('');
-      } else {
-        msgH='<div style="color:#555;font-size:13px;margin-bottom:10px;">No messages sent yet.</div>';
-      }
-      return '<div class="sec">'+
-        '<div class="sech">&#128172; Messages <button class="addbtn" data-a="send-msg">+ Send</button></div>'+
-        msgH+
-        (msgList.length>5?'<div style="color:#555;font-size:12px;text-align:center;margin-top:2px;">+ '+(msgList.length-5)+' older</div>':'')+
-      '</div>';
     }())+
     // ONLINE SESSION
     '<div class="sec">'+
@@ -1502,7 +1584,32 @@ function renderDetail(){
         '<button class="book-change" data-a="bk">Change</button>'+
       '</div>'+
     '</div>'+
-    '<button class="delbtn" data-a="dm">&#128465; Remove Member</button>';
+    // HOMEWORK (inline, after Book)
+    '<div class="sec">'+
+      '<div class="sech">&#128218; Off-Day Homework</div>'+
+      (m.homework && m.homework.text ?
+        '<div style="background:rgba(229,90,0,0.06);border:1px solid rgba(229,90,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:10px;">'+
+          (m.homework.date?'<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Assigned '+fmtD(m.homework.date)+(m.homework.updatedBy?' &middot; '+esc(m.homework.updatedBy):'')+'</div>':'')+
+          '<div style="font-size:13px;color:#ccc;line-height:1.75;white-space:pre-wrap;">'+esc(m.homework.text)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button data-a="set-homework" style="flex:1;padding:11px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#9998; Edit</button>'+
+          '<button data-a="clear-homework" style="padding:11px 14px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">&#215; Clear</button>'+
+        '</div>'
+      :
+        '<div style="color:#555;font-size:13px;margin-bottom:10px;">No homework assigned yet.</div>'+
+        '<button data-a="set-homework" style="width:100%;padding:12px;background:rgba(229,90,0,0.1);border:1.5px solid #e55a00;border-radius:9px;color:#e55a00;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;">+ Assign Homework</button>'
+      )+
+    '</div>'+
+    '<button class="delbtn" data-a="dm">&#128465; Remove Member</button>'+
+    '</div>'+
+    // CALISTHENICS TAB
+    '<div id="det-calis-content" style="display:'+(detTab==='calis'?'block':'none')+';">'+
+      '<div class="sec" id="calis-sec">'+
+        '<div class="sech">&#129304; Calisthenics</div>'+
+        calisthenicsHTML(m)+
+      '</div>'+
+    '</div>';
 
   // track selected day — if locked (within 5 min), pre-select next rotation day
   var selDay = nd.recentLock ? ndNext.day : sel;
@@ -1812,6 +1919,24 @@ function renderDetail(){
     });
   }
 
+  // calisthenics step dropdowns
+  var calisSec = $("calis-sec");
+  if(calisSec){
+    calisSec.addEventListener("change", function(e){
+      var sel2 = e.target.closest("[data-calis-day]"); if(!sel2) return;
+      var day = sel2.getAttribute("data-calis-day");
+      var step = parseInt(sel2.value);
+      var mm = gm(); if(!mm) return;
+      mm.calisthenics = mm.calisthenics||{};
+      if(step===-1) delete mm.calisthenics[day];
+      else mm.calisthenics[day] = step;
+      // Re-render exercise list in place without full page rebuild
+      var newHTML = calisthenicsHTML(mm);
+      calisSec.querySelector("div:not(.sech)") && (calisSec.innerHTML = '<div class="sech">&#129304; Calisthenics</div>'+newHTML);
+      saveM(mm);
+    });
+  }
+
   var adjPanel2 = $("adj-panel2");
   if(adjPanel2){
     adjPanel2.addEventListener("change", function(e){
@@ -2015,9 +2140,16 @@ function renderDetail(){
         '<div style="font-size:13px;color:#888;margin-bottom:16px;">Currently: <b style="color:#e55a00">'+esc(ci.day)+'</b> on '+fmtD(ci.date)+'</div>'+
         '<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Change to:</div>'+
         '<div class="ov-row" style="flex-wrap:wrap;gap:8px;margin-bottom:20px;">'+dayBtns+'</div>'+
-        '<button id="fix-cancel-btn" style="width:100%;padding:12px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Cancel</button>',
+        '<button id="fix-cancel-btn" style="width:100%;padding:12px;background:none;border:1.5px solid #333;border-radius:9px;color:#888;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px;">Cancel</button>'+
+        '<button id="fix-remove-btn" style="width:100%;padding:12px;background:rgba(255,85,85,0.08);border:1.5px solid rgba(255,85,85,0.35);border-radius:9px;color:#ff5555;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;">Remove This Check-In</button>',
         function(){
           document.getElementById("fix-cancel-btn").addEventListener("click", function(){ closeM(); });
+          document.getElementById("fix-remove-btn").addEventListener("click", function(){
+            var mm2=gm(); if(!mm2) return;
+            if(!confirm('Remove this check-in for '+mm2.name+'?')) return;
+            mm2.checkins=(mm2.checkins||[]).filter(function(c){return c.id!==id;});
+            saveM(mm2); closeM();
+          });
           document.querySelector("#modal .ov-row").addEventListener("click", function(e){
             var btn = e.target.closest("[data-fixday]"); if(!btn) return;
             var newDay = btn.getAttribute("data-fixday");
