@@ -72,13 +72,16 @@ input,select,textarea{font-family:inherit;-webkit-appearance:none;outline:none;}
 .det-name{font-size:17px;font-weight:800;color:#e55a00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
 .editbtn{padding:8px 12px;background:#e55a00;color:#fff;border-radius:8px;font-size:13px;font-weight:700;flex-shrink:0;}
 
-.detbody{padding:12px 12px 80px;}
-.det-tab-row{display:flex;gap:6px;padding:12px 12px 10px;}
+.detbody{padding:14px 14px 80px;}
+.det-tab-row{display:flex;gap:6px;padding:12px 14px 10px;}
 .det-tab{flex:1;padding:8px 4px;border-radius:20px;font-size:11px;font-weight:800;text-align:center;cursor:pointer;border:1.5px solid #2a2a2a;font-family:'Space Mono',monospace;background:#1a1a1a;color:#555;transition:background .15s,color .15s,border-color .15s;letter-spacing:.4px;}
 .det-tab.active{background:#e55a00;color:#fff;border-color:#e55a00;}
-.sec{background:#1c1c1c;border:1.5px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:12px;}
-.sech{display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:800;margin-bottom:12px;}
-.addbtn{padding:6px 12px;background:#e55a00;color:#fff;border-radius:7px;font-size:12px;font-weight:700;}
+.sec{background:#161616;border-radius:16px;padding:18px 16px;margin-bottom:10px;box-shadow:0 0 0 1px rgba(255,255,255,0.05);}
+.sech{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:14px;text-transform:uppercase;letter-spacing:1.2px;color:#888;}
+.addbtn{padding:4px 10px;background:none;color:#e55a00;border:1px solid rgba(229,90,0,0.4);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+.btn-sec{width:100%;padding:12px;background:rgba(229,90,0,0.08);border:1.5px solid rgba(229,90,0,0.3);border-radius:10px;color:#e55a00;font-size:14px;font-weight:700;margin-top:8px;font-family:inherit;cursor:pointer;display:block;text-align:center;}
+.btn-ghost{width:100%;padding:12px;background:none;border:1.5px solid #252525;border-radius:10px;color:#666;font-size:13px;font-weight:700;margin-top:8px;font-family:inherit;cursor:pointer;display:block;text-align:center;}
+.btn-danger{width:100%;padding:12px;background:rgba(255,85,85,0.05);border:1.5px solid rgba(255,85,85,0.2);border-radius:10px;color:#ff5555;font-size:13px;font-weight:700;margin-top:8px;font-family:inherit;cursor:pointer;display:block;text-align:center;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
 .ibox{background:#111;border-radius:10px;padding:10px 12px;}
 .ilbl{font-size:10px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.5px;}
@@ -111,7 +114,7 @@ input,select,textarea{font-family:inherit;-webkit-appearance:none;outline:none;}
 .ndt{font-size:11px;color:#444;}
 .ntxt{font-size:13px;color:#ddd;line-height:1.5;margin-top:4px;}
 .nauthor{font-size:11px;color:#e55a00;margin-top:4px;}
-.delbtn{display:block;width:100%;padding:12px;color:#ff5555;font-size:13px;font-weight:700;background:none;margin-top:4px;}
+.delbtn{display:block;width:100%;padding:12px;color:#ff5555;font-size:13px;font-weight:700;background:rgba(255,85,85,0.05);border:1.5px solid rgba(255,85,85,0.2);border-radius:10px;margin-top:8px;cursor:pointer;}
 .empty{text-align:center;padding:14px;color:#444;font-size:13px;}
 
 .modal-bg{display:none;position:fixed;left:0;right:0;bottom:0;top:0;background:rgba(0,0,0,.85);z-index:1100;align-items:flex-end;justify-content:center;}
@@ -137,6 +140,7 @@ input,select,textarea{font-family:inherit;-webkit-appearance:none;outline:none;}
 .adddaybtn{width:100%;padding:10px;background:#1a1a1a;color:#e55a00;border:1.5px dashed #e55a00;border-radius:9px;font-size:13px;font-weight:700;margin-top:6px;}
 .hist-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a1a;font-size:13px;}
 .hist-item:last-child{border:none;}
+.pkg-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:20px;vertical-align:middle;margin-left:5px;}
 .gtab{white-space:nowrap;padding:9px 18px;border-radius:20px;border:1.5px solid #2a2a2a;background:#111;font-size:13px;font-weight:700;color:#555;cursor:pointer;font-family:inherit;transition:all .15s;}
 .gtab.on{background:#e55a00;color:#fff;border-color:#e55a00;}
 .gphase{background:#1c1c1c;border:1.5px solid #2a2a2a;border-radius:14px;padding:18px;margin-bottom:12px;}
@@ -299,6 +303,8 @@ var FB = {
 
 var DAYS = ["Legs","Chest","Back","Shoulders","Arms","Rest","Phoenix"];
 var PHASES = ["Phase 1","Phase 2","Phase 3","Phase 4","Phase 5","Phase 6","Phase 7","Phase 8","Phase 9","Phase 10","Phoenix","None"];
+var PKG_TYPES = ["Per Session","Starter","Core","Elite","ClassPass"];
+var PKG_COL = {"Per Session":"#64b4ff","Starter":"#5ce8a8","Core":"#ffc107","Elite":"#e55a00","ClassPass":"#c4b5fd"};
 var planDraft = null; // used by the custom plan builder modal
 var INJ_ST = ["Active","Monitoring","Resolved"];
 var AVC = ["#e55a00","#cc4400","#ff7733","#aa3300","#ff8800","#bb4400"];
@@ -377,17 +383,23 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 
 // ── HEADER ──────────────────────────────────────
+function activeMembers(){
+  return Object.values(members).filter(function(m){
+    if(!m||!m.name) return false;
+    var days = daysSinceLastCheckin(m);
+    return days !== null && days < 30;
+  });
+}
 function updateHdr(){
-  var tot = Object.keys(members).length;
-  var act = Object.values(members).reduce(function(s,m){
-    return s + allActiveInjuries(m).length;
-  },0);
   var checkedInToday = Object.values(members).filter(function(m){
     var cl = m.checkins||[];
     if(!cl.length) return false;
     return cl[cl.length-1].date === today();
   }).length;
-  var h = $("hinfo"); if(h) h.textContent = tot+" members · ✓ "+checkedInToday+" checked in today";
+  var activeCount = activeMembers().length;
+  var miaCount = getMiaMembers().length;
+  var h = $("hinfo");
+  if(h) h.textContent = activeCount+" active · "+miaCount+" inactive · ✓ "+checkedInToday+" today";
 }
 
 // ── FILTERS ──────────────────────────────────────
@@ -441,6 +453,10 @@ function getNextDay(m){
   if(!cl.length) return {day:rDay(rot[0]),phase:rPhase(rot[0]),idx:0,col:DAY_COL[rDay(rot[0])]||"#e55a00"};
   var last = cl[cl.length-1];
   var li = last.rotIdx!=null ? last.rotIdx : 0;
+  // Phase Zero lock: stay on same day until all 3 band sessions are done
+  if(!isP0Complete(m)){
+    return {day:rDay(rot[li]),phase:rPhase(rot[li]),idx:li,col:DAY_COL[rDay(rot[li])]||"#e55a00"};
+  }
   var ni = (li+1)%rot.length;
   return {day:rDay(rot[ni]),phase:rPhase(rot[ni]),idx:ni,col:DAY_COL[rDay(rot[ni])]||"#e55a00"};
 }
@@ -504,11 +520,11 @@ function getNextBar(m, day, phase){
   if(day==="Shoulders" && phaseNum(phase)>=1) return manualBar || "Straight Bar";
   // Auto-alternate based on last bar used — stays in sync even after manual overrides
   if(day==="Legs"){
-    if(phaseNum(phase)<2) return "Straight Bar";
+    if(phaseNum(phase)<2) return null; // bar rotation starts at Phase 2
     return (m.lastLegsBar||"") === "Transformer Bar" ? "Straight Bar" : "Transformer Bar";
   }
   if(day==="Back"){
-    if(phaseNum(phase)<5) return "Straight Bar";
+    if(phaseNum(phase)<5) return null; // bar rotation starts at Phase 5
     return (m.lastBackBar||"") === "Trap Bar" ? "Straight Bar" : "Trap Bar";
   }
   return null;
@@ -579,6 +595,8 @@ function renderTracker(){
   monthTotal = monthMembers.size;
 
   var totalMembers = Object.keys(members).length;
+  var activeCount = activeMembers().length;
+  var miaCount = getMiaMembers().length;
 
   function barRow(label, count, total, col){
     var pct = total > 0 ? Math.round((count/total)*100) : 0;
@@ -648,8 +666,8 @@ function renderTracker(){
     '<div style="background:#0e0e0e;border:1.5px solid #1e1e1e;border-radius:14px;padding:14px;margin-bottom:10px;">'+
       '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:10px;">📊 Check-In Tracker</div>'+
       '<div style="display:flex;gap:8px;margin-bottom:14px;">'+
-        statBox('Today', dayTotal, totalMembers+' members', '#e55a00')+
-        statBox('This Month', monthTotal, 'members this month', '#5ce8a8')+
+        statBox('Today', dayTotal, activeCount+' active / '+miaCount+' inactive', '#e55a00')+
+        statBox('This Month', monthTotal, activeCount+' active members', '#5ce8a8')+
       '</div>'+
     '</div>';
 
@@ -688,12 +706,18 @@ function renderList(){
     return (a.name||"").localeCompare(b.name||""); // then alphabetical
   });
 
-  $("mmeta").textContent = "Showing "+arr.length+" of "+Object.keys(members).length+" members";
+  // Split into active (< 30 days or never checked in) and MIA (30+ days)
+  var miaArr = arr.filter(function(m){ var d=daysSinceLastCheckin(m); return d!==null && d>=30; });
+  var activeArr = arr.filter(function(m){ var d=daysSinceLastCheckin(m); return d===null || d<30; });
+  var activeTotal = activeMembers().length;
+  var miaTotal = getMiaMembers().length;
+  $("mmeta").textContent = activeTotal+" active · "+miaTotal+" inactive (30+ days)";
   updateHdr();
   var el = $("mlist"); el.innerHTML = "";
 
   if(!arr.length){ el.innerHTML='<div class="empty" style="padding:40px;color:#444;">No members yet. Tap + Add to get started.</div>'; return; }
-  arr.forEach(function(m){
+
+  function renderCard(m, muted){
     var nd = getNextDay(m);
     var ts = getTodaySession(m);
     var act = (m.injuries||[]).filter(function(i){return i.status!=="Resolved";});
@@ -711,7 +735,7 @@ function renderList(){
     d.innerHTML =
       '<div class="av" style="background:'+avc(m.name)+'">'+esc(ini(m.name))+'</div>'+
       '<div class="mci">'+
-        '<div class="mcn" style="color:'+(isPhoenix?'#ff6633':'')+'">'+esc(m.name)+(hasMods?' <span style="font-size:11px;font-weight:700;color:#c068e0;background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.35);border-radius:6px;padding:1px 6px;vertical-align:middle;">⚠ Mods</span>':'')+(isPhoenix?' <span style="font-size:11px;font-weight:800;color:#ff4400;background:rgba(255,68,0,0.15);border:1px solid rgba(255,68,0,0.4);border-radius:6px;padding:1px 6px;vertical-align:middle;">🔥 Phoenix</span>':'')+(isMia?' <span style="font-size:11px;font-weight:800;color:#ff5555;background:rgba(255,85,85,0.12);border:1px solid rgba(255,85,85,0.35);border-radius:6px;padding:1px 6px;vertical-align:middle;">⚠ MIA</span>':'')+'</div>'+
+        '<div class="mcn" style="color:'+(isPhoenix?'#ff6633':'')+'">'+esc(m.name)+(hasMods?' <span style="font-size:11px;font-weight:700;color:#c068e0;background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.35);border-radius:6px;padding:1px 6px;vertical-align:middle;">⚠ Mods</span>':'')+(isPhoenix?' <span style="font-size:11px;font-weight:800;color:#ff4400;background:rgba(255,68,0,0.15);border:1px solid rgba(255,68,0,0.4);border-radius:6px;padding:1px 6px;vertical-align:middle;">🔥 Phoenix</span>':'')+(isMia?' <span style="font-size:11px;font-weight:800;color:#ff5555;background:rgba(255,85,85,0.12);border:1px solid rgba(255,85,85,0.35);border-radius:6px;padding:1px 6px;vertical-align:middle;">⚠ MIA</span>':'')+(m.membership&&PKG_COL[m.membership]?' <span class="pkg-badge" style="color:'+PKG_COL[m.membership]+';background:'+PKG_COL[m.membership]+'18;border:1px solid '+PKG_COL[m.membership]+'44;">'+esc(m.membership)+'</span>':'')+'</div>'+
         (function(){
           if(!m.birthday) return '';
           var now2=new Date(); var today0=new Date(now2.getFullYear(),now2.getMonth(),now2.getDate());
@@ -745,9 +769,25 @@ function renderList(){
         (act.length?'<div class="mcw">&#9888; '+act.length+' active modification</div>':'')+
       '</div>'+
       '<div class="mcr" style="color:'+(ts.checkedInToday?'#e55a00':nd.col)+'">'+(ts.checkedInToday?'✓':esc(nd.day))+'</div>';
+    if(muted) d.style.opacity = '0.55';
     d.addEventListener("click", function(){ showDetail(m.id); });
     el.appendChild(d);
-  });
+  }
+
+  // Render active members
+  activeArr.forEach(function(m){ renderCard(m, false); });
+
+  // Render MIA section with separator
+  if(miaArr.length){
+    var sep = document.createElement("div");
+    sep.style.cssText = "margin:14px 0 10px;display:flex;align-items:center;gap:10px;";
+    sep.innerHTML =
+      '<div style="flex:1;height:1px;background:#2a2a2a;"></div>'+
+      '<div style="font-size:10px;font-weight:800;letter-spacing:1.5px;color:#555;white-space:nowrap;text-transform:uppercase;">Inactive — 30+ Days · '+miaArr.length+'</div>'+
+      '<div style="flex:1;height:1px;background:#2a2a2a;"></div>';
+    el.appendChild(sep);
+    miaArr.forEach(function(m){ renderCard(m, true); });
+  }
 }
 
 // ── PER-DAY DATA HELPERS ──────────────────────────────────────
@@ -785,6 +825,51 @@ function saveDayNote(mm, day, note, del){
   if(del){ dd[day].notes = dd[day].notes.filter(function(n){return n.id!==note;}); }
   else { dd[day].notes.unshift(note); }
   mm.dayData = dd; saveM(mm);
+}
+
+// ── PHASE ZERO — BAND FOUNDATION ───────────────────────────────
+function phase0BandHTML(m){
+  var done = m.p0band || [false, false, false];
+  var doneCount = done.filter(Boolean).length;
+  var allDone = doneCount === 3;
+
+  var checksHTML = '<div style="display:flex;gap:8px;margin-bottom:10px;">';
+  [0,1,2].forEach(function(i){
+    var on = done[i] ? true : false;
+    checksHTML +=
+      '<button style="flex:1;padding:14px 6px;border-radius:12px;border:2px solid '+(on?'#5ce8a8':'#2a2a2a')+';background:'+(on?'rgba(92,232,168,.15)':'#111')+';color:'+(on?'#5ce8a8':'#555')+';font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.3px;" data-p0i="'+i+'">'+
+        '<div style="font-size:20px;margin-bottom:4px">'+(on?'✓':'○')+'</div>Session '+(i+1)+
+      '</button>';
+  });
+  checksHTML += '</div>';
+
+  var statusHTML = '';
+  if(allDone){
+    statusHTML = '<div style="background:rgba(92,232,168,.1);border:1.5px solid #5ce8a8;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;">'+
+      '<span style="font-size:18px;">🏅</span>'+
+      '<div><div style="font-weight:800;font-size:12px;color:#5ce8a8;">Phase Zero Complete — Cleared for weight training</div></div>'+
+    '</div>';
+  } else {
+    statusHTML = '<div style="background:rgba(255,193,7,.07);border:1.5px solid rgba(255,193,7,.25);border-radius:10px;padding:9px 13px;font-size:11px;color:#ffc107;">'+
+      '&#128274; '+doneCount+'/3 sessions done — rotation stays on current day until complete'+
+    '</div>';
+  }
+
+  return checksHTML + statusHTML;
+}
+
+function isP0Complete(m){
+  // Members who already had check-ins before Phase Zero existed are implicitly past it
+  if((m.checkins||[]).length > 0 && !m.p0band) return true;
+  var done = m.p0band || [false, false, false];
+  return done.filter(Boolean).length === 3;
+}
+
+function needsPhaseZero(m){
+  // Only show Phase Zero for new members who haven't completed it
+  // If they already have check-in history with no p0band, they pre-date Phase Zero
+  if((m.checkins||[]).length > 0 && !m.p0band) return false;
+  return !isP0Complete(m);
 }
 
 // ── PHASE 3 CHEST TRACKER ──────────────────────────────────────
@@ -1280,7 +1365,7 @@ function renderDetail(){
       '</div>'+
       '<div style="display:flex;align-items:center;gap:6px;">'+
         '<div style="text-align:right"><div style="color:#555;font-size:11px">'+fmtD(c.date)+'</div>'+(c.timestamp?'<div style="color:#666;font-size:11px">'+fmtT(c.timestamp)+'</div>':'')+' <div style="color:#e55a00;font-size:11px">'+esc(c.trainer||"")+'</div></div>'+
-        (showFix?'<button data-a="fix-checkin" data-id="'+esc(c.id)+'" style="background:rgba(229,90,0,0.12);border:1.5px solid #e55a00;border-radius:10px;color:#e55a00;font-size:16px;padding:12px 20px;cursor:pointer;font-family:inherit;font-weight:700;min-width:64px;min-height:52px;" title="Change day">✎ Fix</button>':'')+
+        (showFix?'<button data-a="fix-checkin" data-id="'+esc(c.id)+'" style="background:none;border:1.5px solid #2a2a2a;border-radius:10px;color:#888;font-size:12px;padding:8px 14px;cursor:pointer;font-family:inherit;font-weight:700;" title="Change day">✎ Fix</button>':'')+
       '</div>'+
     '</div>';
   }
@@ -1430,19 +1515,26 @@ function renderDetail(){
         DAYS.map(function(d){var btnSel=nd.recentLock?(d===ndNext.day):(d===sel);return '<button class="ov-btn'+(btnSel?' sel':'')+'" data-day="'+d+'">'+d+'</button>';}).join("")+
       '</div>'+
       '<button class="ci-btn" id="ci-btn"'+(nd.recentLock?' style="background:#2a2a2a;color:#e55a00;border:1.5px solid #e55a00;" disabled':'')+'>'+( nd.recentLock ? '&#10003; Checked In Today' : '&#10003; Check In Now')+'</button>'+
-      (nd.recentLock ? '<button data-a="undo-checkin" style="width:100%;padding:10px;background:none;border:1.5px solid #2a2a2a;border-radius:10px;color:#555;font-size:13px;font-weight:700;margin-top:6px;font-family:inherit;cursor:pointer;">&#8617; Undo Check-In</button>' : '')+
+      (nd.recentLock ? '<button data-a="undo-checkin" class="btn-ghost" style="margin-top:6px;">&#8617; Undo Check-In</button>' : '')+
       (!nd.recentLock ? '<textarea id="ci-note-inp" placeholder="Quick session note... (optional)" rows="2" style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid #2a2a2a;border-radius:10px;color:#ccc;font-size:13px;padding:10px 12px;margin-top:8px;font-family:inherit;resize:none;box-sizing:border-box;display:block;"></textarea>' : '')+
-      '<button style="width:100%;padding:14px;background:'+(m.isPhoenix?'rgba(255,85,85,0.15)':'none')+';border:1.5px solid '+(m.isPhoenix?'#ff5555':'#333')+';border-radius:10px;color:'+(m.isPhoenix?'#ff5555':'#888')+';font-size:15px;font-weight:800;margin-top:8px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;" id="phoenix-btn">'+
-        '<input type="checkbox" id="phoenix-toggle" '+(m.isPhoenix?'checked':'')+' style="width:22px;height:22px;accent-color:#ff5555;cursor:pointer;flex-shrink:0;">'+
+      '<button class="btn-ghost" style="display:flex;align-items:center;justify-content:center;gap:10px;'+(m.isPhoenix?'border-color:rgba(255,85,85,0.4);color:#ff5555;background:rgba(255,85,85,0.07);':'')+'" id="phoenix-btn">'+
+        '<input type="checkbox" id="phoenix-toggle" '+(m.isPhoenix?'checked':'')+' style="width:18px;height:18px;accent-color:#ff5555;cursor:pointer;flex-shrink:0;">'+
         '<span>🔥 Phoenix Member</span>'+
       '</button>'+
-      '<button style="width:100%;padding:14px;background:none;border:1.5px solid #333;border-radius:10px;color:#888;font-size:15px;font-weight:800;margin-top:8px;font-family:inherit;" id="set-day-btn">&#9881; Set Next Day in Rotation</button>'+
+      '<button class="btn-ghost" id="set-day-btn">&#9881; Set Next Day in Rotation</button>'+
       '<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'+
       '<div style="font-size:11px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Recent Check-Ins</div>'+
       '<button id="view-all-btn" style="background:none;border:none;color:#e55a00;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;padding:0;">View All ›</button>'+
       '</div>'+
       histH+
     '</div>'+
+    // PHASE ZERO BAND FOUNDATION — only for new members who haven't completed it
+    (needsPhaseZero(m) ?
+      '<div class="sec" id="p0-sec">'+
+        '<div class="sech">&#127895; Phase Zero — Band Foundation</div>'+
+        '<div id="p0-container">'+phase0BandHTML(m)+'</div>'+
+      '</div>'
+    : '')+
     // HOSPITALITY PANEL
     (function(){
       var alerts = [];
@@ -1498,10 +1590,11 @@ function renderDetail(){
     // PROFILE
     '<div class="sec">'+
       '<div class="grid2">'+
-        '<div class="ibox" style="cursor:pointer" data-qpday="'+esc(sel)+'" data-qpphase="'+esc(nd.phase)+'"><div class="ilbl">Phase &#9432;</div><div class="ival" style="color:#ffc107">'+esc(nd.phase||m.phase)+'</div></div>'+
+        '<div class="ibox" style="cursor:pointer;position:relative;" data-qpday="'+esc(sel)+'" data-qpphase="'+esc(nd.phase)+'"><div class="ilbl">Phase &#9432;</div><div class="ival" style="color:#ffc107">'+esc(nd.phase||m.phase)+'</div>'+(needsPhaseZero(m)?'<div style="position:absolute;top:6px;right:8px;font-size:9px;background:rgba(255,193,7,.15);border:1px solid rgba(255,193,7,.4);border-radius:4px;color:#ffc107;padding:1px 5px;font-weight:800;letter-spacing:.5px;">P0 LOCKED</div>':'')+'</div>'+
         '<div class="ibox"><div class="ilbl">Member Since</div><div class="ival" style="font-size:12px">'+fmtD(m.joinDate)+'</div></div>'+
         '<div class="ibox"><div class="ilbl">Check-Ins</div><div class="ival" style="color:#e55a00">'+(m.checkins||[]).length+'</div></div>'+
         '<div class="ibox"><div class="ilbl">Modifications</div><div class="ival" style="color:'+(act.length?"#ff5555":"#5ce8a8")+'">'+(act.length||"None")+'</div></div>'+
+        (m.membership?'<div class="ibox" style="grid-column:1/-1;"><div class="ilbl">Package</div><div class="ival" style="color:'+(PKG_COL[m.membership]||"#888")+';font-size:13px;">'+esc(m.membership)+'</div></div>':'')+
       '</div>'+
     '</div>'+
     // MESSAGES
@@ -1622,7 +1715,7 @@ function renderDetail(){
     var rot = mm.rotation||[];
     var ri = rot.findIndex(function(r){return rDay(r)===dayToUse;});
     var ph = ri>=0 ? rPhase(rot[ri]) : "";
-    var barUsed = getNextBar(mm, dayToUse, ph);
+    var barUsed = isP0Complete(mm) ? getNextBar(mm, dayToUse, ph) : null;
     lastCheckinId = uid();
     checkins.push({id:lastCheckinId, date:today(), timestamp:Date.now(), day:dayToUse, phase:ph, bar:barUsed||"", rotIdx:ri>=0?ri:selNdIdx, trainer:trainer});
     mm.checkins = checkins;
@@ -1790,6 +1883,21 @@ function renderDetail(){
       else flat[idx] = !flat[idx];
       mm.p3chest = {incline:inc, flat:flat};
       saveM(mm);
+    });
+  }
+
+  // p0 band session checks
+  var p0cont = $("p0-container");
+  if(p0cont){
+    p0cont.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-p0i]"); if(!btn) return;
+      e.stopPropagation();
+      var idx = parseInt(btn.getAttribute("data-p0i"));
+      var mm = gm(); if(!mm) return;
+      var done = (mm.p0band || [false,false,false]).slice();
+      done[idx] = !done[idx];
+      mm.p0band = done;
+      saveM(mm); // saveM calls renderDetail() and renderList()
     });
   }
 
@@ -2352,8 +2460,17 @@ function openMemberForm(m){
       '<div class="fg"><label>Join Date</label><input id="fj" type="date" value="'+esc(m?m.joinDate||today():today())+'"></div>'+
     '</div>'+
     '<div class="fg"><label>Birthday</label><input id="fbday" type="date" value="'+esc(m&&m.birthday?m.birthday:'')+'"></div>'+
-    '<div class="fg"><label>Email</label><input id="fe" type="email" value="'+esc(m?m.email||'':'')+'"></div>'+
+    '<div class="f2">'+
+      '<div class="fg"><label>Email</label><input id="fe" type="email" value="'+esc(m?m.email||'':'')+'"></div>'+
+      '<div class="fg"><label>Client Access Code</label><input id="fac" type="text" inputmode="numeric" maxlength="4" value="'+esc(m?m.accessCode||'0000':'0000')+'" placeholder="0000" autocomplete="off" style="letter-spacing:6px;font-size:20px;font-weight:800;text-align:center;"></div>'+
+    '</div>'+
     '<div class="fg"><label>Goal</label><input id="fgoal" value="'+esc(m?m.goal||'':'')+'" placeholder="e.g. Lose 20lbs, Train for marathon, Build strength" autocomplete="off"></div>'+
+    '<div class="fg"><label>Membership Package</label>'+
+      '<select id="fpkg">'+
+        '<option value="">— Select Package —</option>'+
+        PKG_TYPES.map(function(p){ return '<option value="'+p+'"'+(m&&m.membership===p?' selected':'')+'>'+p+'</option>'; }).join('')+
+      '</select>'+
+    '</div>'+
 
     '<div class="fg"><label>Workout Rotation (in order)</label><div class="daylist" id="dlist"></div><button class="adddaybtn" id="addday">+ Add Day</button></div>'+
     '<div class="fbtns"><button class="fcancel" id="mfc">Cancel</button><button class="fsave" id="mfs">Save</button></div>',
@@ -2393,11 +2510,14 @@ function openMemberForm(m){
         if(!name){ alert("Name is required."); return; }
         if(!rot.length){ alert("Add at least one workout day."); return; }
         var rot2 = rot.map(function(r){return typeof r==="object"?{day:r.day||"",phase:r.phase||"",bar:r.bar||""}:{day:r,phase:"",bar:""};});
+        var codeVal = ($("fac").value||"").replace(/\D/g,"").slice(0,4)||"0000";
         var data = Object.assign({}, m||{}, {
           id: id||uid(), name:name,
           phone:($("fp").value||"").trim(),
           email:($("fe").value||"").trim(),
           goal:($("fgoal").value||"").trim(),
+          membership:($("fpkg").value||"").trim(),
+          accessCode: codeVal,
           isPhoenix: m ? !!m.isPhoenix : false,
           phase: rot2.length ? (rot2[0].phase||"") : "",
           joinDate:$("fj").value,
@@ -3077,6 +3197,45 @@ function showAnalytics(){
   renderAnalytics();
 }
 
+function showPkgTab(pkg){
+  // Highlight active tab
+  PKG_TYPES.concat(['Unassigned']).forEach(function(p){
+    var btn = document.getElementById('pkg-tab-'+p.replace(/\s/g,''));
+    if(!btn) return;
+    var col = PKG_COL[p] || '#888';
+    var active = p === pkg;
+    btn.style.background = active ? col+'18' : '#111';
+    btn.style.borderColor = active ? col+'66' : '#252525';
+    btn.style.color = active ? col : '#555';
+  });
+  var el = document.getElementById('pkg-list'); if(!el) return;
+  var list = Object.values(members).filter(function(m){
+    if(!m||!m.name) return false;
+    return pkg==='Unassigned' ? (!m.membership||!m.membership.trim()) : m.membership===pkg;
+  }).sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+  if(!list.length){
+    el.innerHTML='<div style="font-size:13px;color:#555;text-align:center;padding:14px 0;">No members in this package.</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(m){
+    var days = daysSinceLastCheckin(m);
+    var status = days===null?'New':days===0?'Today':days+'d ago';
+    var statusCol = days===null?'#555':days===0?'#5ce8a8':days<7?'#e55a00':days<30?'#ffc107':'#ff5555';
+    var nd = getNextDay(m);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1a1a1a;cursor:pointer;" onclick="showDetail(\''+esc(m.id)+'\')">'+
+      '<div style="width:34px;height:34px;border-radius:50%;background:'+avc(m.name)+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;">'+esc(ini(m.name))+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-weight:700;font-size:13px;">'+esc(m.name)+'</div>'+
+        '<div style="font-size:11px;color:#555;margin-top:2px;">'+(m.checkins||[]).length+' check-ins &nbsp;·&nbsp; <span style="color:'+(DAY_COL[nd.day]||'#888')+'">'+esc(nd.day)+'</span> next</div>'+
+      '</div>'+
+      '<div style="text-align:right;flex-shrink:0;">'+
+        '<div style="font-size:11px;font-weight:800;color:'+statusCol+';">'+status+'</div>'+
+        '<div style="font-size:10px;color:#555;margin-top:2px;">'+esc(nd.phase||'')+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
 function renderAnalytics(){
   var allCI=[];
   Object.values(members).forEach(function(m){
@@ -3236,7 +3395,27 @@ function renderAnalytics(){
   var mTrend=monthDiff===null?"":monthDiff>0?"&#9650; "+monthDiff+"% vs last month":monthDiff<0?"&#9660; "+Math.abs(monthDiff)+"% vs last month":"= Same as last month";
   var mTrendCol=monthDiff>0?"#5ce8a8":monthDiff<0?"#ff5555":"#888";
 
+  // ── MEMBERSHIP PACKAGES SECTION ──
+  var pkgTabsHTML = PKG_TYPES.map(function(p){
+    var cnt = Object.values(members).filter(function(m){ return m.membership===p; }).length;
+    var col = PKG_COL[p];
+    return '<button id="pkg-tab-'+p.replace(/\s/g,'')+'" onclick="showPkgTab(\''+p+'\')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1.5px solid #252525;background:#111;color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;">'+
+      p+' <span style="font-size:10px;font-weight:800;background:#1e1e1e;padding:1px 6px;border-radius:10px;margin-left:3px;">'+cnt+'</span>'+
+    '</button>';
+  }).join('');
+  var unassignedCnt = Object.values(members).filter(function(m){ return !m.membership; }).length;
+
   $("analytics-body").innerHTML=
+    '<div class="sec" style="margin-bottom:14px;">'+
+      '<div class="sech">&#128230; Membership Packages</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">'+
+        pkgTabsHTML+
+        '<button id="pkg-tab-Unassigned" onclick="showPkgTab(\'Unassigned\')" style="flex-shrink:0;padding:8px 14px;border-radius:20px;border:1.5px solid #252525;background:#111;color:#555;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">'+
+          'Unassigned <span style="font-size:10px;font-weight:800;background:#1e1e1e;padding:1px 6px;border-radius:10px;margin-left:3px;">'+unassignedCnt+'</span>'+
+        '</button>'+
+      '</div>'+
+      '<div id="pkg-list"><div style="font-size:12px;color:#555;text-align:center;padding:12px 0;">Select a package above to see members.</div></div>'+
+    '</div>'+
     '<div style="display:flex;gap:6px;margin-bottom:8px;">'+
       statBox("Total",total,"all-time","#e55a00")+
       statBox("This Week",thisWeekC,"check-ins","#5ce8a8")+
